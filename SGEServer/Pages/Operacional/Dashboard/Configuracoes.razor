@@ -1,0 +1,246 @@
+﻿@page "/configuracoes"
+
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@layout MainLayout
+<style>
+    .layout-miniatura {
+        position: relative;
+        width: 100%;
+        height: 400px; /* Adjust as needed */
+    }
+
+    .layout-miniatura .sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 20%; /* Adjust as per your sidebar width */
+        height: 100%;
+        display:flex;
+        flex-direction:column;
+    }
+
+    .layout-miniatura .header {
+        position: absolute;
+        top: 0;
+        left: 20%; /* Adjust based on sidebar width */
+        height: 40px; /* Adjust as per your header height */
+        width: 80%; /* Remaining width */
+        z-index:5;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        border-bottom:2px solid #fff;
+    }
+
+    .layout-miniatura .content {
+        position: absolute;
+        top: 20px; /* Adjust based on header height */
+        left: 20%; /* Adjust based on sidebar width */
+        width: 80%; /* Remaining width */
+        height: calc(100% - 20px); /* Remaining height */
+    }
+    .slidebar-itens p{
+        padding-bottom:20px;
+        padding-left:10px;
+    }
+
+    .mud-input > input.mud-input-root.mud-input-root-filled, div.mud-input-slot.mud-input-root.mud-input-root-filled {
+        background-color: @VariantFilledColor;
+    }
+
+    /* cor dos label autocomplete e filled*/
+    .mud-input-control > .mud-input-control-input-container > .mud-input-label-inputcontrol {
+        color: @CorLabel;
+    }
+
+    /* cor da digitação dos input*/
+    .mud-input > input.mud-input-root, div.mud-input-slot.mud-input-root {
+        color: @CorDaEscrita;
+    }
+
+    /* cor do label mudSelect */
+    #fixo-branco .mud-shrink ~ label.mud-input-label.mud-input-label-inputcontrol, .mud-input:focus-within ~ label.mud-input-label.mud-input-label-inputcontrol {
+        color: #fff;
+    }
+    /* cor dos label depois do hover */
+    .mud-shrink ~ label.mud-input-label.mud-input-label-inputcontrol, .mud-input:focus-within ~ label.mud-input-label.mud-input-label-inputcontrol {
+        color: @CorLabel;
+    }
+
+    /* cor dos icones*/
+    .mud-icon-root.mud-svg-icon {
+        color: @CorIcone;
+    }
+
+    h2 {
+        text-align: center;
+        font-size: @Variaveis.FontPadrao;
+        font-weight: 700;
+        margin: 5px 0;
+        text-transform: uppercase;
+        color: @CorTitulos;
+    }
+</style>
+<MudGrid Class="d-flex">
+    <MudItem xs="3">
+        <MudColorPicker Label="Sidebar Color" @bind-Text="sidebarColor" />
+    </MudItem>
+    <MudItem xs="3">
+        <MudColorPicker Label="Sidebar Color" @bind-Text="BoxColor" />
+    </MudItem>
+    <MudItem xs="3">
+        <MudColorPicker Label="Sidebar Color" @bind-Text="TextHeader" />
+    </MudItem>
+    <MudItem xs="3">
+        <MudColorPicker Label="Sidebar Color" @bind-Text="BoxContentColor" />
+    </MudItem>
+    <MudItem xs="3">
+        <MudColorPicker Label="Filled" @bind-Text="VariantFilledColor" />
+    </MudItem>
+    <MudItem xs="3">
+        <MudColorPicker Label="Cor da Escrita" @bind-Text="CorDaEscrita" />
+    </MudItem>
+    <MudItem xs="3">
+        <MudColorPicker Label="Cor do Label" @bind-Text="CorLabel" />
+    </MudItem>
+    <MudItem xs="3">
+        <MudColorPicker Label="Cor dos Icones" @bind-Text="CorIcone" />
+    </MudItem>
+    <MudItem xs="3">
+        <MudColorPicker Label="Cor dos Titulos" @bind-Text="CorTitulos" />
+    </MudItem>
+
+
+    <MudItem xs="12" Class="d-flex justify-center">
+        <h2>Pré-Vizualização</h2>
+    </MudItem>
+    <MudItem xs="12">
+        <div class="layout-miniatura" style="@($"background-color: {BoxColor};")">
+            <div class="sidebar" style="@($"background-color: {sidebarColor};")">
+                <div style="display:flex;align-items:center;height:40px; border-bottom:2px solid #fff;">
+                    <p style="color:#fff; padding-left:10px;">Logo</p>
+                </div>
+                <div class="slidebar-itens">
+                    <p style="color:#2196f3;margin-top:40px;">Dashboard</p>
+                    <p style="color:#2196f3 ;">Clientes</p>
+                    <p style="color:#ff9800 ;">Produtos</p>
+                    <p style="color:#1EC8A5 ;">Estoque</p>
+                    <p style="color:#00c853 ;">Cotação</p>
+                    <p style="color:#594ae2 ;">Ordem Compra</p>
+                </div>
+            </div>
+            <div class="header" style="@($"background-color: {sidebarColor};")">
+                <div style="display:flex;justify-content:end;width:100%">
+                    <p style="@($"color: {TextHeader};")">Nome da Empresa</p>
+                </div>
+                
+                <div style="display:flex;justify-content:end;width:100%; padding-right:20px;">
+                    <p style="@($"color: {TextHeader};")">Usuário</p>
+                </div>
+               
+            </div>
+            <div class="content" style="padding:40px 20px 20px 20px;">
+                <div style="@($"background-color: {BoxContentColor};") width:100%;height:100%;border-radius:10px; padding:20px;">
+                    <h2>Cotação</h2>
+                    <MudItem xs="12">
+                        <MudGrid Class="paper-style mb-2">
+                            <MudItem Class="d-flex flex-column" xs="4">
+                                <MudAutocomplete T="ClientesModel"
+                                                 Label="Empresa/Pessoa"
+                                                 Variant="Variant.Text"
+                                                 AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
+
+                            </MudItem>
+                            <MudItem xs="8"></MudItem>
+                            <MudItem xs="3">
+                               
+                                    <MudAutocomplete  T="ProdutosModel"
+                                                     Label="Item"
+                                                     Variant="Variant.Text"
+                                                     AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
+
+                            </MudItem>
+
+                            <MudItem xs="2">
+                                <MudNumericField 
+                                                 Variant="Variant.Text"
+                                                 T="int"
+                                                 Label="Quantidade" />
+                              
+
+                            </MudItem>
+                            @* -------------- VALOR UNITARIO ------------- *@
+                            <MudItem xs="2">
+                                <MudNumericField
+                                                 Variant="Variant.Text"
+                                                 T="decimal"
+                                                 Label="Valor Uni." />
+                              
+                            </MudItem>
+                            <MudItem xs="5"></MudItem>
+
+                            @* -------------- UNIDADE DE MEDIDA ----------- *@
+                            <MudItem xs="2">
+                                <MudTextField 
+                                              Variant="Variant.Filled"
+                                              T="string"
+                                              Label="Un. Medida" />
+                            </MudItem>
+
+                            @* ------- VALOR COMPRADO ----------- *@
+                            <MudItem xs="2">
+                                <MudTextField T="decimal" Variant="Variant.Text" Label="Último Valor Comprado"/>
+                            </MudItem>
+
+                            @* -------- ULTIMA VENDA -------- *@
+                            <MudItem xs="2">
+                                <MudTextField T="decimal"  Variant="Variant.Filled" Label="Último Valor de Venda" />
+                            </MudItem>
+
+                            @* ---------- NCM ---------- *@
+                            <MudItem xs="3">
+                                <MudTextField 
+                                              T="string"
+                                              Label="NCM" />
+                                
+
+                            </MudItem>
+
+                            @* ---------- CA ---------- *@
+                            <MudItem xs="3">
+                                <MudTextField
+                                              T="string"
+                                              Label="CA" />
+                                
+                            </MudItem>
+                        </MudGrid>
+                    </MudItem>
+                </div>
+            </div>
+        </div>
+    </MudItem>
+</MudGrid>
+
+<MudItem xs="12" Class="d-flex justify-end">
+    <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="BtnVoltar">Voltar</MudButton>
+</MudItem>
+
+@code {
+    private string sidebarColor;
+    private string BoxColor;
+    private string TextHeader;
+    private string BoxContentColor;
+    private string VariantFilledColor;
+    private string CorDaEscrita;
+    private string CorLabel;
+    private string CorIcone;
+    private string CorTitulos;
+
+    private void BtnVoltar()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    
+}

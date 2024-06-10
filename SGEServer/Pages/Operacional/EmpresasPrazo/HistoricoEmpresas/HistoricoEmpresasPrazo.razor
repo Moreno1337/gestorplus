@@ -1,0 +1,197 @@
+﻿@page "/historicoempresasprazo"
+
+@inject NavigationManager Navigation
+@inject AuthenticationLogin authStateProvider
+@inject ClientesController _Clientes
+@inject ProdutosController _Produtos
+@layout MainLayout
+<style>
+    /* estiliza a cor do label do textfield antes de ser clicado */
+    .mud-input-label {
+        color: #ACACAB !important;
+    }
+    /* cor do houver do textfield  */
+    .mud-input.mud-input-underline:after {
+        border-bottom: 2px solid #04D282;
+    }
+    /* muda cor do label depois de algo ser digitado */
+    .mud-shrink ~ label.mud-input-label.mud-input-label-inputcontrol, .mud-input:focus-within ~ label.mud-input-label.mud-input-label-inputcontrol {
+        color: #fff !important;
+    }
+    /* cor do textfield depois de digitado */
+    .mud-input > input.mud-input-root, div.mud-input-slot.mud-input-root {
+        color: #fff;
+    }
+
+    .paper-style {
+        background-color: #011E36;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    .sub-text {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 900;
+    }
+
+    h2 {
+        text-align: center;
+        font-size: @Variaveis.FontPadrao;
+        font-weight: 700;
+        margin: 20px 0;
+        text-transform: uppercase;
+        color: #fff;
+    }
+
+    .margin-padrao {
+        margin: 0 10%;
+    }
+
+</style>
+
+@if (isAuthenticated)
+{
+    <div class="margin-padrao">
+        <h2>Histórico de Empresas a Prazo</h2>
+        <MudGrid Class="paper-style">
+            <MudItem xs="12">
+                <MudText Class="sub-text">Filtros</MudText>
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField Variant="Variant.Text" T="string" Label="Nome" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTable Items="listClientes" FixedHeader="true" FixedFooter="true" Height="500px" Hover="true" Breakpoint="Breakpoint.None">
+                    <ToolBarContent>
+                        <MudText Style="font-weight: 700;">@listClientes.Count() Empresas Encontradas</MudText>
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col style="width: 120px" />
+                        <col />
+                        <col />
+                        <col style="width:40px" />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>CNPJ/CPF</MudTh>
+                        <MudTh>Nome Fantasia/Pessoa</MudTh>
+                        <MudTh>Razão Social</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="CNPJ/CPF">
+                            @if (!string.IsNullOrWhiteSpace(context.Cnpj))
+                            {
+                                @context.Cnpj
+                            }
+                            else
+                            {
+                                @context.Cpf
+                            }
+                        </MudTd>
+                        <MudTd DataLabel="Nome">
+                            @if (!string.IsNullOrWhiteSpace(context.NomeFantasia))
+                            {
+                                @context.NomeFantasia
+                            }
+                            else
+                            {
+                                @context.NomePessoa
+                            }
+                        </MudTd>
+                        <MudTd DataLabel="RazaoSocial">@context.RazaoSocial</MudTd>
+                        <MudTd>
+                            <MudIconButton Size="@Size.Medium" Icon="@Icons.Material.Outlined.Search"
+                                           OnClick="() => BtnVerMais(context.CodCliente,
+                              string.IsNullOrWhiteSpace(context.NomeFantasia) ? context.NomePessoa : context.NomeFantasia,
+                              string.IsNullOrWhiteSpace(context.Cnpj) ? context.Cpf : context.Cnpj,
+                              Usr.CodEmpresa)" />
+
+                        </MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager style="overflow-y: scroll;" InfoFormat="@itensInfoFormat" RowsPerPageString="Itens por pág." />
+                    </PagerContent>
+                    <NoRecordsContent>
+                        <MudText Color="Color.Error">Não foi encontrado nenhum Cliente com Produtos a prazo :\</MudText>
+                    </NoRecordsContent>
+                    <LoadingContent>
+                        <MudText>Carregando...</MudText>
+                    </LoadingContent>
+                </MudTable>
+            </MudItem>
+
+            <MudItem Class="d-flex justify-start align-center" xs="4">
+                <MudButton OnClick="BtnVoltar" Variant="Variant.Filled" Color="Color.Error">
+                    Voltar
+                </MudButton>
+            </MudItem>
+            <MudItem xs="8"></MudItem>
+
+
+        </MudGrid>
+
+    </div>
+}
+
+@code {
+    private bool isAuthenticated = false;
+
+    private string itensInfoFormat = "{first_item}-{last_item} de {all_items}";
+    private List<ClientesModel> listClientes = new List<ClientesModel>();
+    private LoginModel Usr = new();
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                isAuthenticated = await AuthenticationLogin.AuthenticateUser(authStateProvider, Usr, Navigation);
+
+                listClientes = CarregaHistoricoTabelaClientesAPrazo();
+
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            
+        }
+    }
+    
+    private List<ClientesModel> CarregaHistoricoTabelaClientesAPrazo()
+    {
+        try
+        {
+            var resp = _Clientes.CarregaHistoricoEmpresasAPrazo(Usr.CodEmpresa);
+
+            return resp;
+        }
+        catch (Exception ex)
+        {
+
+            Console.WriteLine("Erro ao carregar empresas a prazo: " + ex.Message);
+            return new List<ClientesModel>();
+        }
+    }
+
+
+    // -------- BTN VOLTAR ----------
+
+    private void BtnVoltar()
+    {
+        Navigation.NavigateTo("/empresasprazo");
+    }
+
+    private void BtnVerMais(int CodCliente, string Nome, string Identificacao, int CodEmpresa)
+    {
+        string nomeEncoded = string.IsNullOrWhiteSpace(Nome) ? "" : Uri.EscapeDataString(Nome);
+        string identificacaoEncoded = string.IsNullOrWhiteSpace(Identificacao) ? "" : Uri.EscapeDataString(Identificacao);
+
+    Navigation.NavigateTo($"/historicoprodutosempresaaprazo/{CodCliente}/{nomeEncoded}/{identificacaoEncoded}/{CodEmpresa}");
+    }
+
+}

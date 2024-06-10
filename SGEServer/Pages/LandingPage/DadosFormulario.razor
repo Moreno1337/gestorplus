@@ -1,0 +1,155 @@
+﻿@page "/dadosformulario"
+
+@inject ProdutosController _Produtos
+@inject NavigationManager Navigation
+@inject AuthenticationLogin authStateProvider
+@layout MainLayout
+
+<style>
+    /* estiliza a cor do label do textfield antes de ser clicado */
+    .mud-input-label {
+        color: #ACACAB !important;
+    }
+    /* cor do houver do textfield  */
+    .mud-input.mud-input-underline:after {
+        border-bottom: 2px solid #04D282;
+    }
+    /* muda cor do label depois de algo ser digitado */
+    .mud-shrink ~ label.mud-input-label.mud-input-label-inputcontrol, .mud-input:focus-within ~ label.mud-input-label.mud-input-label-inputcontrol {
+        color: #fff !important;
+    }
+    /* cor do textfield depois de digitado */
+    .mud-input > input.mud-input-root, div.mud-input-slot.mud-input-root {
+        color: #fff;
+    }
+
+    .paper-style {
+        background-color: #011E36;
+        border-radius: 10px;
+        padding: 10px 20px 40px 20px;
+    }
+
+    h2 {
+        text-align: center;
+        font-size: @Variaveis.FontPadrao;
+        font-weight: 700;
+        margin: 20px 0;
+        text-transform: uppercase;
+        color: #fff;
+    }
+
+    .margin-padrao {
+        margin: 0 10%;
+    }
+
+</style>
+
+@if (isAuthenticated)
+{
+    <div class="d-flex justify-center align-center">
+
+        <MudGrid Class="ma-5">
+            <MudItem Class="d-flex align-center justify-center" xs="12">
+                <h2>Dados do Formulário</h2>
+            </MudItem>
+            <MudItem xs="12" Class="paper-style">
+                <MudTable Striped="true" Bordered="true" Items="listForm" FixedHeader="true" FixedFooter="true" Height="500px" Hover="true" Breakpoint="Breakpoint.None">
+                    <ToolBarContent>
+                        <MudText Style="font-weight: 700;">@listForm.Count() Dados Encontrados</MudText>
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col style="width: 180px;" />
+                        <col style="width: 180px;" />
+                        <col style="width: 180px;" />
+                        <col style="width: 180px;" />
+                        <col style="width: 180px;" />
+                        <col style="width: 180px;" />
+                        <col style="width: 180px;" />
+                        <col style="width: 180px;" />
+                        <col style="width: 180px;" />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>Plano</MudTh>
+                        <MudTh>Valor</MudTh>
+                        <MudTh>Nome da Empresa</MudTh>
+                        <MudTh>Cargo na Empresa</MudTh>
+                        <MudTh>Celular</MudTh>
+                        <MudTh>Email</MudTh>
+                        <MudTh>Dúvida</MudTh>
+                        <MudTh>Nome</MudTh>
+                        <MudTh>Sobrenome</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Plano">@context.Descricao</MudTd>
+                        <MudTd DataLabel="Valor">@context.Valor</MudTd>
+                        <MudTd DataLabel="Nome da Empresa">@context.NomeEmpresa</MudTd>
+                        <MudTd DataLabel="Cargo na Empresa">@context.CargoEmpresa</MudTd>
+                        <MudTd DataLabel="Celular">@context.Celular</MudTd>
+                        <MudTd DataLabel="Email">@context.Email</MudTd>
+                        <MudTd DataLabel="Dúvida">@context.DuvidaFeedback</MudTd>
+                        <MudTd DataLabel="Nome">@context.PrimeiroNome</MudTd>
+                        <MudTd DataLabel="Sobrenome">@context.Sobrenome</MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager style="overflow-y: scroll;" InfoFormat="@itensInfoFormat" RowsPerPageString="Itens por pág." />
+                    </PagerContent>
+                    <NoRecordsContent>
+                        <MudText Color="Color.Error">Não foi encontrado nenhuma movimentação :\</MudText>
+                    </NoRecordsContent>
+                    <LoadingContent>
+                        <MudText>Carregando...</MudText>
+                    </LoadingContent>
+                </MudTable>
+                <MudItem xs="12">
+                    <MudText Color="@mensagemCor">@mensagem</MudText>
+                </MudItem>
+                <MudItem Class="d-flex justify-space-between mt-7" xs="12">
+                    <MudButton OnClick="BtnVoltar" Variant="Variant.Filled" Color="Color.Error"> Voltar</MudButton>
+                </MudItem>
+            </MudItem>
+        </MudGrid>
+
+    </div>
+}
+
+
+@code {
+    private bool isAuthenticated = false;
+    private LoginModel Usr = new();
+    private List<FormModel> listForm = new List<FormModel>();
+    private string itensInfoFormat = "{first_item}-{last_item} de {all_items}";
+    private string mensagem = "";
+    private Color mensagemCor = Color.Default;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                isAuthenticated = await AuthenticationLogin.AuthenticateUser(authStateProvider, Usr, Navigation);
+
+                listForm = CarregaTabelaForm();
+
+                StateHasChanged();
+
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+    }
+
+    private List<FormModel> CarregaTabelaForm()
+    {
+        var resp = _Produtos.CarregaFormulario();
+
+        return resp;
+    }
+
+    private void BtnVoltar()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+}

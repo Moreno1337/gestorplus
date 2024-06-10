@@ -1,0 +1,544 @@
+﻿@page "/ordemdecompra"
+
+@inject NavigationManager Navigation
+@inject AuthenticationLogin authStateProvider
+@inject ProdutosController _Produtos
+@inject CotacaoController _Cotacao
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@layout MainLayout
+<style>
+    /* estiliza a cor do label do textfield antes de ser clicado */
+    .mud-input-label {
+        color: #ACACAB !important;
+    }
+    /* cor do houver do textfield  */
+    .mud-input.mud-input-underline:after {
+        border-bottom: 2px solid #04D282;
+    }
+    /* muda cor do label depois de algo ser digitado */
+    .mud-shrink ~ label.mud-input-label.mud-input-label-inputcontrol, .mud-input:focus-within ~ label.mud-input-label.mud-input-label-inputcontrol {
+        color: #fff !important;
+    }
+    /* cor do textfield depois de digitado */
+    .mud-input > input.mud-input-root, div.mud-input-slot.mud-input-root {
+        color: #fff;
+    }
+
+    /* cor do required caracteres */
+    .ms-auto {
+        color: #ACACAB;
+    }
+    /* cor do required text */
+    .me-auto {
+        color: #ACACAB;
+    }
+
+    .paper-style {
+        background-color: #011E36;
+        border-radius: 10px;
+        padding: 10px 30px 30px 30px;
+    }
+
+    .sub-text {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 900;
+    }
+
+
+    h2 {
+        text-align: center;
+        font-size: @Variaveis.FontPadrao;
+        font-weight: 700;
+        margin: 20px 0 30px 20px;
+        text-transform: uppercase;
+        color:#fff;
+    }
+
+    .Titulo-ordem-de-compra {
+        text-align:start;
+        font-size:@Variaveis.FontSubTitulo;
+    }
+
+    .margin-padrao {
+        margin: 0 10%;
+    }
+
+    .no-wrap {
+        white-space: nowrap;
+    }
+
+    .mt-16, .my-16 {
+        margin-top: 0px !important;
+    }
+
+</style>
+
+@if (isAuthenticated)
+{
+    <div class="margin-padrao">
+        <h2>Ordem de Compra</h2>
+        
+
+        <MudGrid Class="paper-style mb-4 d-flex flex-column align-center">
+            <MudItem xs="12">
+                <MudText Class="sub-text">Relacionar N.Cotação com a Ordem de Compra</MudText>
+            </MudItem>
+            <MudGrid Class="d-flex align-center justify-center">
+                <MudItem xs="3" sm="3" Class="mt-6">
+                    <MudTextField Required Counter="12" MaxLength="12" @bind-Value="NumCotacao" Variant="Variant.Text" T="string" Label="N. Cotação" />
+                </MudItem>
+                <MudItem xs="3" sm="3">
+                    <MudTextField @bind-Value="NumOrdemCompra" Variant="Variant.Text" T="string" Immediate="true" Label="N. Ordem de Compra" OnKeyUp="@CheckIfNumeric" />
+                </MudItem>
+                <MudItem xs="2" sm="2" Class="d-flex justify-center" Style="height:80px">
+                    <MudButton OnClick="@VerificaDadosParaSalvarOrdemCompra" Variant="Variant.Filled" Color="Color.Info"> Atrelar </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudGrid>
+
+    <MudGrid Class="paper-style">
+
+     
+        <MudGrid Class="mb-4">
+            <MudItem xs="12">
+                <MudText Class="sub-text">Filtros</MudText>
+            </MudItem>
+            <MudItem xs="3">
+                    <MudTextField OnKeyUp="BtnPesquisar" Immediate="true" @bind-Value="NumCotacaoFiltro" Variant="Variant.Text" T="string" Label="N. Cotação" />
+            </MudItem>
+            <MudItem xs="3">
+                <MudTextField  OnKeyUp="BtnPesquisar" Immediate="true" @bind-Value="NomeEncode" Variant="Variant.Text" T="string" Label="Nome Fantasia / Pessoa" />
+            </MudItem>
+            <MudItem xs="3">
+                <MudTextField  OnKeyUp="BtnPesquisar" Immediate="true" @bind-Value="IdentificacaoEncode" Variant="Variant.Text" T="string" Label="CNPJ / CPF" />
+            </MudItem>
+            <MudItem xs="3">
+                    <MudTextField OnKeyUp="BtnPesquisar" Immediate="true" @bind-Value="NumOrdemCompraFiltro" Variant="Variant.Text" T="string" Label="N. Ordem de Compra" />
+            </MudItem>
+               
+            <MudItem xs="12" sm="4"></MudItem>
+        </MudGrid>
+
+
+        <MudGrid Class=" d-flex flex-column">
+            <h2 class="Titulo-ordem-de-compra">Cotações Realizadas</h2>
+            <MudItem>
+                 <MudItem>
+                        <MudTable Items="listOrdemCompra" Striped="true" Bordered="true" FixedHeader="true" FixedFooter="true" Height="500px" Hover="true" Breakpoint="Breakpoint.None">
+                            <ToolBarContent>
+                                <MudText Style="font-weight: 700;">@listOrdemCompra.Count() Cotações Encontradas</MudText>
+                            </ToolBarContent>
+                            <ColGroup>
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                            </ColGroup>
+                            <HeaderContent>
+                                <MudTh>N. OrdemCompra</MudTh>
+                                <MudTh>N. Cotação</MudTh>
+                                <MudTh>CNPJ / CPF</MudTh>
+                                <MudTh>Nome Fantasia / Pessoa</MudTh>
+                                <MudTh>Valor Total</MudTh>
+                                <MudTh>Status Cotação</MudTh>
+                                <MudTh>Data Criação</MudTh>
+                                <MudTh></MudTh>
+                                <MudTh></MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="N. OrdemCompra">@context.NumOrdemCompra</MudTd>
+                                <MudTd DataLabel="N. Cotação">@context.NumCotacao</MudTd>
+                                <MudTd DataLabel="CNPJ/CPF">
+                                    @if (!string.IsNullOrWhiteSpace(context.Cnpj))
+                                    {
+                                        @context.Cnpj
+                                    }
+                                    else
+                                    {
+                                        @context.Cpf
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Nome">
+                                    @if (!string.IsNullOrWhiteSpace(context.NomeFantasia))
+                                    {
+                                        @context.NomeFantasia
+                                    }
+                                    else
+                                    {
+                                        @context.NomePessoa
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Valor Total">@context.ValorTotal.ToString("F2")</MudTd>
+                                <MudTd DataLabel="Status Pagamento">@context.StatusPagamento</MudTd>
+                                <MudTd DataLabel="Data Criação">@context.DataCriacao</MudTd>
+                                <MudTd>
+                                    <MudIconButton OnClick="@(() => OnClickEditarCotacao(context))" Size="@Size.Medium" Icon="@Icons.Material.Filled.DeliveryDining" />
+                                </MudTd>
+                                <MudTd>
+                                    <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                                        <MudMenuItem OnClick="@(() => BtnEditarOrdemCompra(context))">Editar</MudMenuItem>
+                                        @if (context.CodStatus == 2)
+                                        {
+                                           <MudMenuItem OnClick="@(() => BtnFecharOrdem(context))">Pago</MudMenuItem>
+                                        }
+                                        <MudMenuItem></MudMenuItem>
+                                    </MudMenu>
+                                </MudTd>
+                            </RowTemplate>
+                            <PagerContent>
+                                <MudTablePager style="overflow-y: scroll;" InfoFormat="@itensInfoFormat" RowsPerPageString="Itens por pág." />
+                            </PagerContent>
+                            <NoRecordsContent>
+                                <MudText Color="Color.Error">Nenhuma ordem de compra encontrada :\</MudText>
+                            </NoRecordsContent>
+                            <LoadingContent>
+                                <MudText>Carregando...</MudText>
+                            </LoadingContent>
+                        </MudTable>
+                    </MudItem>
+            </MudItem>
+        </MudGrid>
+            <MudItem Class="d-flex justify-start" xs="6">
+                <MudButton OnClick="BtnVoltar" Variant="Variant.Filled" Color="Color.Error">Voltar</MudButton>
+            </MudItem>
+            <MudItem Class="d-flex justify-end" xs="6">
+                <MudButton OnClick="BtnExportar" Variant="Variant.Filled" Color="Color.Info">Exportar</MudButton>
+            </MudItem>
+    </MudGrid> 
+</div>
+}
+
+@code {
+    private bool isAuthenticated = false;
+
+    private string itensInfoFormat = "{first_item}-{last_item} de {all_items}";
+    private List<OrdemCompraModel> listOrdemCompra = new List<OrdemCompraModel>();
+    private decimal valorTotal = 0;
+    private string NumCotacao = string.Empty;
+    private string Cnpj = string.Empty;
+    private string Item = string.Empty;
+    private string Ncm = string.Empty;
+    private int Quantidade = 0;
+    private decimal ValorUnitario = 0;
+    private string NumOrdemCompra = string.Empty;
+    private int CodCliente = 0;
+    private decimal ValorTotal = 0m;
+    private string NomeFantasia = string.Empty;
+    private string NomeEncode = string.Empty;
+    private string NumCotacaoFiltro = string.Empty;
+    private string NumOrdemCompraFiltro = string.Empty;
+    private string IdentificacaoEncode = string.Empty;
+
+
+    private LoginModel Usr = new();
+
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                isAuthenticated = await AuthenticationLogin.AuthenticateUser(authStateProvider, Usr, Navigation);
+                listOrdemCompra = CarregaTabelaOdemCompra("","","","");
+
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+    }
+
+    private async Task BtnPesquisar()
+    {
+        listOrdemCompra = _Cotacao.CarregaOrdemCompras(Usr.CodEmpresa, NumCotacaoFiltro, NomeEncode, IdentificacaoEncode, NumOrdemCompraFiltro);
+    }
+
+    private List<OrdemCompraModel> CarregaTabelaOdemCompra(string NumCotacaoFiltro, string NomeEncode, string IdentificacaoEncode, string NumOrdemCompraFiltro)
+    {
+        try
+        {
+            var resp = _Cotacao.CarregaOrdemCompras(Usr.CodEmpresa, NumCotacaoFiltro, NomeEncode, IdentificacaoEncode, NumOrdemCompraFiltro);
+
+            return resp;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao carregar cotações salvas: " + ex.Message);
+            return new List<OrdemCompraModel>();
+        }
+    }
+
+    // VERIFICA SE O CODCLIENTE E NUMCOTACAO SAO IGUAIS, SE FOR IGUAL NÃO DEIXA ADICIONAR
+    private async void VerificaDadosParaSalvarOrdemCompra()
+    {
+        try
+        {
+            // Verifica se o número da ordem de compra e da cotação está vazio ou nulo antes de prosseguir
+            if (string.IsNullOrEmpty(NumCotacao))
+            {
+                Snackbar.Add("ERRO! O número da cotação não pode estar vazio.", Severity.Error);
+                return; // Interrompe a execução do método aqui
+            }
+            if (string.IsNullOrEmpty(NumOrdemCompra))
+            {
+                Snackbar.Add("ERRO! O número da ordem de compra não pode estar vazio.", Severity.Error);
+                return; // Interrompe a execução do método aqui
+            }
+
+            bool resp = _Cotacao.VerificaCotacaoExistente(NumCotacao, Usr.CodEmpresa);
+            if (!resp)
+            {
+                Snackbar.Add("ERRO! Numero da Cotação não existe.", Severity.Error);
+                return; // Interrompe a execução se a cotação não existir
+            }
+
+            bool resultadoVerificacao = _Cotacao.VerificaDadosEmpresaParaOrdemCompra(NumCotacao, Usr.CodEmpresa);
+
+            if (resultadoVerificacao)
+            {
+                string OrdemCompraJaAtrelada = _Cotacao.VerificaCotacaoAtrelada(NumCotacao, Usr.CodEmpresa);
+                Snackbar.Add($"Erro: Já possui uma Ordem Compra N.{OrdemCompraJaAtrelada} para essa cotação N.{NumCotacao}", Severity.Error);
+
+            }
+            else
+            {
+                // Se não existe uma ordem de compra existente, prossegue com as operações.
+                AtrelarOrdemCompra();
+                if (CriarOrdemCompra())
+                {
+                    LimparDados();
+                    listOrdemCompra = CarregaTabelaOdemCompra("", "", "", "");
+                    Snackbar.Add($"SUCESSO! Ordem de compra {NumOrdemCompra} criada", Severity.Success);
+                }
+            }
+        }
+        catch (FormatException)
+        {
+            // Exibir mensagem de erro relacionada à formatação de número
+        }
+        catch (OverflowException)
+        {
+            // Exibir mensagem de erro relacionada ao tamanho do número
+        }
+        catch (Exception ex)
+        {
+            // Exibir mensagem de erro genérica
+            //MensagemErro($"Erro ao verificar dados para ordem de compra: {ex.Message}");
+
+        }
+    }
+
+    private async void BtnEditarOrdemCompra(OrdemCompraModel context)
+    {
+        var parameters = new DialogParameters
+            {
+                ["NumCotacao"] = context.NumCotacao,
+                ["NumOrdemCompraAntigo"] = context.NumOrdemCompra,
+            };
+
+        DialogOptions Options = new DialogOptions();
+        Options.DisableBackdropClick = true;
+        var result = await DialogService.Show<ModalEditarOrdemCompra>("", parameters, Options).Result;
+
+        if (!result.Cancelled && result.Data is ModalResultData resultData)
+        {
+            NumOrdemCompra = resultData.NumOrdemCompra;
+            NumCotacao = resultData.NumCotacao;
+            var resp = _Cotacao.EditarNumeroOrdemCompra(NumCotacao, NumOrdemCompra, Usr.CodEmpresa);
+            Snackbar.Add(resp, Severity.Success);
+            listOrdemCompra = CarregaTabelaOdemCompra("", "", "", "");
+            StateHasChanged();
+        }
+    }
+
+    private async void AtrelarOrdemCompra()
+    {
+        var resp = _Cotacao.UpdateNumeroOrdemCompra(NumCotacao, NumOrdemCompra, Usr.CodEmpresa);
+    }
+
+
+    private async void BtnExportar()
+    {
+        if (listOrdemCompra.Count() > 0)
+        {
+            List<string> colunas = new()
+        {
+            "NumCotacao",
+            "Ordem Compra",
+            "Nome Fantasia",
+            "Cnpj",
+            "Nome Pessoa",
+            "Cpf",
+            "Valor Total",
+            "Status",
+            "Data Criação"
+        };
+
+            List<List<string>> linhas = new();
+
+            foreach (var linha in listOrdemCompra)
+            {
+                linhas.Add(new()
+                {
+                    linha.NumCotacao.ToString()!,
+                    linha.NumOrdemCompra.ToString()!,
+                    linha.NomeFantasia!,
+                    linha.Cnpj.ToString()!,
+                    linha.NomePessoa,
+                    linha.Cpf.ToString()!,
+                    linha.ValorTotal.ToString("F2")!,
+                    linha.StatusPagamento.ToString()!,
+                    linha.DataCriacao.ToString()!,
+                });
+            }
+
+            await _Excel.ExportarTabelaXlsx("Cotações esperando Aprovação", colunas, linhas);
+        }
+        else
+        {
+            Snackbar.Add("ERRO! Não existem dados para exportar", Severity.Error);
+        }
+    }
+
+    private void CheckIfNumeric(KeyboardEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(NumOrdemCompra) && !System.Text.RegularExpressions.Regex.IsMatch(NumOrdemCompra, @"^\d*$"))
+        {
+            Snackbar.Add("Deseja mesmo cadastrar com letras ou caracteres especiais?", Severity.Info);
+        }
+    }
+
+
+   
+    private bool CriarOrdemCompra()
+    {
+        CotacaoModel dadosCotacao = _Cotacao.CarregarCotacaoEspecifica(NumCotacao, Usr.CodEmpresa);
+        if (dadosCotacao != null)
+        {
+            var resp = _Cotacao.CriarOrdemCompra(dadosCotacao.CodCliente, dadosCotacao.ValorTotal, dadosCotacao.NomeFantasia, dadosCotacao.Cnpj, NumOrdemCompra, dadosCotacao.CodCotacao, Usr.CodEmpresa);
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    // private void RecarregarPagina()
+    // {
+    //     var urlAtual = Navigation.Uri;
+    //     Navigation.NavigateTo(urlAtual, forceLoad: true);
+    // }
+
+    private void LimparDados()
+    {
+        NumCotacao = string.Empty;
+        NumOrdemCompra = string.Empty;
+    }
+
+
+
+
+    // private void BtnRemoverEntrega(OrdemCompraModel dados)
+    // {
+    //     listOrdemCompra.Remove(dados);
+    // }
+
+    // private void BtnRemoverPermanente(OrdemCompraModel dados)
+    // {
+    //     listOrdemCompra.Remove(dados);
+    // }
+
+    // private async void BtnSalvar()
+    // {
+    //     var parameters = new DialogParameters();
+    //     DialogOptions Options = new DialogOptions();
+    //     Options.DisableBackdropClick = true;
+    // }
+
+    private void BtnVoltar()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+
+    private void OnClickEditarCotacao(OrdemCompraModel ordem)
+    {
+        if (ordem == null || string.IsNullOrEmpty(ordem.NumOrdemCompra) || ordem.NumOrdemCompra == "NÃO ATRELADO")
+        {
+            Snackbar.Add("Esta cotação não tem número de Ordem Compra atrelado", Severity.Warning);
+            return;
+        }
+
+        Navigation.NavigateTo($"/entregaspendentes");
+    }
+
+    private void EditarNumOrdemCompra()
+    {
+        try
+        {
+
+            bool resultadoVerificacao = _Cotacao.VerificaDadosEmpresaParaOrdemCompra(NumCotacao, Usr.CodEmpresa);
+
+            if (resultadoVerificacao)
+            {
+                string OrdemCompraJaAtrelada = _Cotacao.VerificaCotacaoAtrelada(NumCotacao, Usr.CodEmpresa);
+                Snackbar.Add($"Erro: Já possui uma Ordem Compra N.{OrdemCompraJaAtrelada} para essa cotação N.{NumCotacao}", Severity.Error);
+
+            }
+            else
+            {
+                // Se não existe uma ordem de compra existente, prossegue com as operações.
+                AtrelarOrdemCompra();
+                if (CriarOrdemCompra())
+                {
+                    LimparDados();
+                    listOrdemCompra = CarregaTabelaOdemCompra("", "", "", "");
+                    Snackbar.Add($"SUCESSO! Ordem de compra {NumOrdemCompra} criada", Severity.Success);
+                }
+            }
+        }
+        catch (FormatException)
+        {
+            // Exibir mensagem de erro relacionada à formatação de número
+        }
+        catch (OverflowException)
+        {
+            // Exibir mensagem de erro relacionada ao tamanho do número
+        }
+        catch (Exception ex)
+        {
+            // Exibir mensagem de erro genérica
+            //MensagemErro($"Erro ao verificar dados para ordem de compra: {ex.Message}");
+
+        }
+    }
+
+    private async void BtnFecharOrdem(OrdemCompraModel ordem)
+    {
+        var parameters = new DialogParameters();
+        DialogOptions Options = new DialogOptions();
+        Options.DisableBackdropClick = true;
+        var result = await DialogService.Show<ModalConfirmarCancelar>("DESEJA REALMENTE FINALIZAR ESTA ORDEM DE COMPRA?", parameters, Options).Result;
+
+        if (!result.Cancelled)
+        {
+            _Cotacao.FecharOrdemCompra(Usr.CodEmpresa, ordem);
+
+            listOrdemCompra = CarregaTabelaOdemCompra("", "", "", "");
+        }
+
+        StateHasChanged();
+    }
+}

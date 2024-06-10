@@ -1,0 +1,376 @@
+﻿@page "/ladingpage"
+
+@inject IDialogService DialogService
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@inject IJSRuntime JSRuntime
+
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./reset.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/Css/reset.css">
+    <link rel="stylesheet" href="/Css/style.css">
+    <title>Gestor Plus</title>
+</head>
+<body>
+    <header class="cabecalho">
+        <div class="cabecalho-container">
+            <div class="container_imagem">
+                <a href="javascript:void(0);" @onclick="ScrollToHome"><img src="/Img-Landing-Page/Logo Branca.png" alt="Logo Sistema de gestão" class="cabecalho_imagem"></a>
+            </div>
+            <div>
+                <input type="checkbox" id="menu" class="container_botao">
+                <label for="menu">
+                    <span class="cabecalho_menu-hamburguer"></span>
+                </label>
+                <ul class="lista-menu">
+                    <li class="lista-menu_item">
+                        <a href="javascript:void(0);" class="lista-menu_link" @onclick="ScrollToHome">Home</a>
+                    </li>
+                    <li class="lista-menu_item">
+                        <a href="javascript:void(0);" class="lista-menu_link" @onclick="ScrollToFAQs">FAQs</a>
+                    </li>
+                    <li class="lista-menu_item">
+                        <a href="javascript:void(0);" class="lista-menu_link" @onclick="ScrollToPlanos">Planos</a>
+                    </li>
+                    <li class="lista-menu_item">
+                        <a href="javascript:void(0);" class="lista-menu_link" @onclick="ScrollToContato">Contato</a>
+                    </li>
+                    @* <li class="lista-menu_item">
+                        <a href="" class="lista-menu_link">Equipe</a>
+                    </li> *@
+                    <li class="lista-menu_item">
+                        <a href="javascript:void(0);" class="lista-menu_link btn-header-teste" @onclick="ScrollToContato">Eu quero!</a>
+                    </li>
+                </ul>   
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class="destaque" id="destaque">
+            <div class="container-left">
+                <div>
+                    <h1>Gestor Plus: Revolucione a Gestão do Seu Estoque</h1>
+                </div>
+                <div>
+                    <div>
+                        <p class="texto-destaque">
+                            "Com nossa plataforma intuitiva, você pode monitorar, organizar e controlar seu inventário com precisão,
+                            garantindo eficiência operacional e redução de custos.
+                            Experimente agora mesmo e veja a diferença que o Gestor Plus pode fazer no seu dia a dia empresarial.
+                            Clique abaixo para começar sua jornada rumo a uma gestão de estoque sem complicações."
+                        </p>
+                    </div>
+                    <div class="container-destaque-buttons">
+                        <a href="javascript:void(0);" @onclick="ScrollToContato" class="btn-testar">Eu quero!</a>
+                        @* <a class="btn-destaque-contato">Contate-nos</a> *@
+                    </div>
+                </div>
+            </div>
+            <div class="container-img-destaque">
+                <div class="container-box-img-destaque">
+                    <img class="d-i-1 d-i" src="/Img-Landing-Page/destaque-1.png" alt="">
+                    <div><img class="d-i-2 d-i" src="/Img-Landing-Page/destaque-2.png" alt=""></div>
+                </div>
+                <div class="container-box-img-destaque">
+                    <img class="d-i-3 d-i" src="/Img-Landing-Page/destaque-3.png" alt="">
+                    <img class="d-i-4 d-i" src="/Img-Landing-Page/destaque-4.png" alt="">
+                </div>
+            </div>
+        </section>
+        <img class="vetor-destaque" src="/Img-Landing-Page/vestor-destaque.png" alt="">
+        <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,80 C 300,180 900,0 1200,60 L 1200 0 L 0 0 Z" class="borda-onda"></path>
+        </svg> -->
+        <section class="processo">
+            <h2>Do Pedido à Execução</h2>
+            <p class="text-processo">Entenda como é fácil começar com o Gestor Plus. Nosso processo passo a passo garante uma transição suave da aquisição até a operação completa.</p>
+            <div class="container-processo">
+                <div class="box-processo">
+                    <img src="/Img-Landing-Page/processo-img.png" alt="">
+                    <p>1 Passo - Realizar o cadastro da sua empresa em nosso sistema.</p>
+                </div>
+                <div class="box-processo">
+                    <img src="/Img-Landing-Page/planos 1.png" alt="">
+                    <p>2 Passo - Escolha qual dos nossos planos te agrada mais.</p>
+                </div>
+                <div class="box-processo">
+                    <img src="/Img-Landing-Page/utiluzando.png" alt="">
+                    <p>3 Passo - Cadastre os dados dos seus produtos e cliente no sistema da Gestor Plus e comece a utilizar nossos serviços.</p>
+                </div>
+            </div>
+        </section>
+        <section class="faqs" id="faqs">
+            <h2>Perguntas Frequentes</h2>
+            <div class="container-faqs">
+                <MudGrid>
+                    <MudItem>
+                        <MudExpansionPanels MultiExpansion=" true ">
+                            <MudExpansionPanel Class="mb-2" Text=" 1. O que é o sistema de gestão e controle de estoque?">
+                                Nosso sistema de gestão e controle de estoque é uma solução integrada que ajuda a gerenciar inventários, emitir notas fiscais, imprimir etiquetas com códigos de barras, e oferecer diversos tipos de planos com pagamento mensal.
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Class="mb-2" Text="2. Quais são as principais funcionalidades do sistema?">
+                                O sistema oferece emissão de notas fiscais, impressão de etiquetas com códigos de barras, análise de produtos e empresas mais lucrativos, alertas de estoque baixo, troca de mensagens dentro do próprio sistema, e muito mais.
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Class="mb-2" Text="3. Como funciona a emissão de notas fiscais?">
+                                A emissão de notas fiscais é realizada de forma automática pelo sistema, conforme os produtos são vendidos ou transferidos. O sistema gera as notas fiscais de acordo com as regulamentações vigentes, garantindo a conformidade fiscal.
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Class="mb-2" Text=" 4. Como posso imprimir etiquetas com códigos de barras?">
+                                As etiquetas com códigos de barras podem ser impressas diretamente do sistema. Basta selecionar os produtos desejados e a quantidade de etiquetas, escolher a impressora e o sistema cuidará do resto.
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Class="mb-2" Text=" 5. O sistema oferece planos de pagamento?">
+                                Sim, o sistema oferece vários tipos de planos de pagamento mensal, adaptando-se às necessidades específicas de cada empresa. Os planos variam conforme o número de funcionalidades e o volume de transações.
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Class="mb-2" Text=" 6. Como o sistema analisa quais produtos são mais lucrativos?">
+                                O sistema utiliza inteligência artificial para analisar as vendas e os lucros gerados por cada produto, identificando os itens mais lucrativos e fornecendo insights valiosos para otimizar a gestão de estoque e a estratégia de vendas.
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Class="mb-2" Text=" 7. O sistema emite alertas de estoque baixo?">
+                                Sim, o sistema monitora constantemente os níveis de estoque e emite alertas quando um produto atinge o limite mínimo definido, permitindo ações rápidas para evitar a falta de produtos.
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Class="mb-2" Text=" 8. É possível trocar mensagens dentro do sistema?">
+                                Sim, o sistema possui uma funcionalidade de troca de mensagens interna, permitindo que os usuários se comuniquem de forma eficiente, facilitando a colaboração e a resolução de problemas.
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Class="mb-2" Text=" 9. Quais tipos de relatórios o sistema pode gerar?">
+                                O sistema pode gerar diversos tipos de relatórios, incluindo relatórios de vendas, movimentação de estoque, lucratividade por produto e empresa, entre outros, fornecendo uma visão abrangente do desempenho e das operações da empresa.
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Class="mb-2" Text=" 10. O sistema é seguro?">
+                                Sim, o sistema possui medidas robustas de segurança para proteger os dados e garantir a privacidade das informações. Utilizamos criptografia e práticas de segurança avançadas para garantir que os dados estejam sempre seguros.
+                            </MudExpansionPanel>
+                        </MudExpansionPanels>
+                    </MudItem>
+
+                </MudGrid>
+            </div>
+
+        </section>
+
+        <img class="img-vetor-top vetor-planos" src="/Img-Landing-Page/teste-vetor.png" alt="">
+        <section class="planos" id="planos">
+            <p class="h2-planos">Conheça nossos Planos</p>
+            <div class="container-planos">
+                <div class="box-ext-planos">
+                    <div class="box-int-planos">
+                        <h3>Básico</h3>
+                        <div>
+                            <p class="preco">R$59,90<span class="mes">/Mês</span></p>
+                            <p class="text-plano">Para pequenas empresas que estão ganhando impulso</p>
+                        </div>
+                        <MudButton OnClick="BtnPlanos" Class="botao-beneficios" Variant="Variant.Filled">Benefícios</MudButton>
+                    </div>
+                </div>
+                <div class="box-ext-planos">
+                    <div class="box-int-planos">
+                        <h3>Pro</h3>
+                        <div>
+                            <p class="preco">R$169,90<span class="mes">/Mês</span></p>
+                            <p class="text-plano">Para empresas que estão crescendo rapidamente</p>
+                        </div>
+                        <MudButton OnClick="BtnPlanos" Class="botao-beneficios" Variant="Variant.Filled">Benefícios</MudButton>
+                    </div>
+                </div>
+                <div class="box-ext-planos">
+                    <div class="box-int-planos">
+                        <h3>Premium</h3>
+                        <div>
+                            <p class="preco">R$349,90<span class="mes">/Mês</span></p>
+                            <p class="text-plano">Para empresas de médio e grande porte</p>
+                        </div>
+                        <MudButton OnClick="BtnPlanos" Class="botao-beneficios" Variant="Variant.Filled">Benefícios</MudButton>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <img class="img-vetor-bottom vetor-planos" src="/Img-Landing-Page/teste-vetor.png" alt="">
+
+
+        <section class="contato" id="contato">
+            <h2>Entre em Contato Conosco</h2>
+            <div class="container-contato">
+                <div class="box-info-contato">
+                    <p class="texto-contato"> Tem alguma dúvida, sugestão ou precisa de suporte?</p>
+                    @* <div class="box-contato">
+                    <MudFab Color="Color.Success" StartIcon="@Icons.Material.Filled.Whatsapp" Label="WhatsApp" />
+                    </div> *@
+
+                    <p class="texto-contato">
+                        Estamos aqui para ajudar!
+                    </p>
+                    <p class="texto-contato"> Entre em contato conosco através do formulário e retornaremos o mais breve possível </p>
+                    <p class="texto-contato"> Sua opinião é muito importante para nós!</p>
+                </div>
+                <div class="form">
+                    <MudGrid>
+                        <MudItem xs="12">
+                            <MudPaper Class="pa-4" Style="border-radius:30px;">
+                                <MudForm Model="@DadosForm" @ref="form" OnValidSubmit="SalvarFormulario">
+                                    <MudSelect @bind-Value="DescricaoPlano" T="int" Variant="Variant.Text" Label="Escolha o Plano*">
+                                        <MudSelectItem Value="0">Selecione</MudSelectItem>
+                                        @foreach (var categoria in DropPlanos)
+                                        {
+                                            <MudSelectItem Value="categoria.Codigo">@categoria.Descricao</MudSelectItem>
+                                        }
+                                    </MudSelect>
+
+                                    <MudTextField T="string" @bind-Value="DadosForm.Email" Label="Seu melhor email" Variant="Variant.Outlined" />
+                                    <MudTextField T="string" @bind-Value="DadosForm.PrimeiroNome" Label="Primeiro nome" Variant="Variant.Outlined" />
+                                    <MudTextField T="string" @bind-Value="DadosForm.Sobrenome" Label="Sobrenome" Variant="Variant.Outlined" />
+                                    <MudTextField T="string" @bind-Value="DadosForm.NomeEmpresa" Label="Nome da Empresa" Variant="Variant.Outlined" />
+                                    <MudTextField T="string" @bind-Value="DadosForm.CargoEmpresa" Label="Cargo na Empresa" Variant="Variant.Outlined" />
+                                    <MudTextField Counter="16" MaxLength="16" Immediate="true" HelperText="Ex.: (00) 0 0000-0000" Mask="@(new PatternMask("(00) 0 0000-0000"))" Variant="Variant.Outlined" T="string" @bind-Value="DadosForm.Celular" Label="Celular" />
+                                    <MudTextField T="string" @bind-Value="DadosForm.DuvidaFeedback" Label="Descreva a dúvida ou feedback" Variant="Variant.Outlined" />
+                                    <MudButton Variant="Variant.Filled" Color="Color.Info" Type="Submit" OnClick="SalvarFormulario">Enviar</MudButton>
+                                </MudForm>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                </div>
+            </div>
+
+        </section>
+        @* <section class="equipe">
+        <h2>Equipe Gestor Plus</h2>
+        <div class="container-master-equipe">
+        <div class="container-equipe">
+        <div class="box-equipe">
+        <img src="/Img-Landing-Page/Charles.png" alt="">
+        <p class="nome-equipe">Carlos Eduardo</p>
+        <p class="funcao-equipe">Jurídico / Administrativo</p>
+        <p class="funcao-equipe">Advogado Empresarial</p>
+        </div>
+        </div>
+        <div class="container-equipe">
+        <div class="box-equipe">
+        <img src="/Img-Landing-Page/Thi.png" alt="">
+        <p class="nome-equipe">Thiago Andrade</p>
+        <p class="funcao-equipe">Desenvolvedor / Designer</p>
+        <p class="funcao-equipe">Front-end</p>
+        <p class="funcao-equipe">Back-end</p>
+        </div>
+        </div>
+        <div class="container-equipe">
+        <div class="box-equipe">
+        <img src="/Img-Landing-Page/jonny.png" alt="">
+        <p class="nome-equipe">João Pedro Moreno</p>
+        <p class="funcao-equipe">Desenvolvedor / Analista</p>
+        <p class="funcao-equipe">Back-end</p>
+        <p class="funcao-equipe">Banco de Dados</p>
+        </div>
+        </div>
+        </div>
+        </section> *@
+    </main>
+    <footer class="rodape">
+        <img class="rodape-img" src="/Img-Landing-Page/Logo Branca.png" alt="Logo Gestor Plus">
+        <div class="rodape-container">
+            <p class="rodape-texto">Gestor Plus</p>
+            <p class="rodape-texto">© 2023 Todos os direitos reservados</p>
+           
+        </div>
+    </footer>
+
+    <script>
+        function scrollToFAQs() {
+            document.getElementById('faqs').scrollIntoView({ behavior: 'smooth' });
+        }
+        function scrollToPlanos() {
+            document.getElementById('planos').scrollIntoView({ behavior: 'smooth' });
+        }
+        function scrollToContato() {
+            document.getElementById('contato').scrollIntoView({ behavior: 'smooth' });
+        }
+        function scrollToHome() {
+            document.getElementById('destaque').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+
+</body>
+</html>
+
+
+@code {
+
+    private MudForm form;
+    private FormModel DadosForm = new FormModel();
+    private List<FormModel> DropPlanos = new List<FormModel>();
+
+    private int DescricaoPlano;
+
+    protected override async Task OnInitializedAsync()
+    {
+        DropPlanos = _Produtos.CarregaPlanos();
+        StateHasChanged();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task SalvarFormulario()
+    {
+        DadosForm.Descricao = DropPlanos.FirstOrDefault(p => p.Codigo == DescricaoPlano)?.Descricao;
+        DadosForm.Email = DadosForm.Email;
+        DadosForm.PrimeiroNome = DadosForm.PrimeiroNome;
+        DadosForm.Sobrenome = DadosForm.Sobrenome;
+        DadosForm.NomeEmpresa = DadosForm.NomeEmpresa;
+        DadosForm.CargoEmpresa = DadosForm.CargoEmpresa;
+        DadosForm.Celular = DadosForm.Celular;
+        DadosForm.DuvidaFeedback = DadosForm.DuvidaFeedback;
+
+        var resp = _Produtos.SalvarForm(DadosForm);
+
+        LimparForm();
+        Snackbar.Add("Seus dados foram enviados com Sucesso! Nossa Equipe entrará em contato em breve", Severity.Success);
+    }
+
+    private void LimparForm()
+    {
+        DescricaoPlano = 0;
+        DadosForm.Email = string.Empty;
+        DadosForm.PrimeiroNome = string.Empty;
+        DadosForm.Sobrenome = string.Empty;
+        DadosForm.NomeEmpresa = string.Empty;
+        DadosForm.CargoEmpresa = string.Empty;
+        DadosForm.Celular = string.Empty;
+        DadosForm.DuvidaFeedback = string.Empty;
+    }
+
+
+    private void BtnIcones()
+    {
+        Snackbar.Add("Em implementação", Severity.Info);
+    }
+
+    private async Task ScrollToHome()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToHome");
+    }
+    private async Task ScrollToFAQs()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToFAQs");
+    }
+    private async Task ScrollToPlanos()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToPlanos");
+    }
+    private async Task ScrollToContato()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToContato");
+    }
+
+    private async void BtnPlanos()
+    {
+        var parameters = new DialogParameters();
+        DialogOptions Options = new DialogOptions();
+        Options.DisableBackdropClick = true;
+        var result = await DialogService.Show<ModalPlanos>("", parameters, Options).Result;
+
+        if (result.Cancelled)
+        {
+
+        }
+    }
+}

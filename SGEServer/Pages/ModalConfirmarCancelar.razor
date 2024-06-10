@@ -1,0 +1,53 @@
+﻿<style>
+    /* cor do texto digitado no mudtext */
+    .mud-input > input.mud-input-root {
+        color: #fff !important;
+    }
+    /* cor do label do mudtext */
+    .mud-input-control > .mud-input-control-input-container > .mud-input-label-inputcontrol {
+        color: #fff !important;
+    }
+
+    .mud-input > input.mud-input-root.mud-input-root-filled, div.mud-input-slot.mud-input-root.mud-input-root-filled {
+        background-color: #063862;
+    }
+
+    .paper-style {
+        background-color: #011E36;
+        padding: 10px;
+        border-radius:0px !important;
+    }
+
+    .mud-dialog .mud-dialog-title {
+        background-color: #011E36;
+        border-radius:0px;
+    }
+    .mud-typography-h6 {
+        color:#fff;
+        text-align:center;
+    }
+</style>
+
+<MudItem Class="d-flex justify-center paper-style">
+	<MudItem xs="6" Class="d-flex justify-center">
+		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="OnClickCancelar">Cancelar</MudButton>
+	</MudItem>
+	<MudItem xs="6" Class="d-flex justify-center">
+		<MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="OnClickConfirmar">Confirmar</MudButton>
+	</MudItem>
+</MudItem>
+
+@code {
+	[CascadingParameter]
+	MudDialogInstance MudDialog { get; set; }
+
+	private void OnClickCancelar()
+	{
+		MudDialog!.Close(DialogResult.Cancel());
+	}
+	
+	private void OnClickConfirmar()
+	{
+		MudDialog.Close(DialogResult.Ok(true));
+	}
+}

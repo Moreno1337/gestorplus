@@ -1,0 +1,265 @@
+﻿@page "/cotacoessalvas"
+
+
+@inject NavigationManager Navigation
+@inject AuthenticationLogin authStateProvider
+@inject ProdutosController _Produtos
+@inject CotacaoController _Cotacao
+@layout MainLayout
+
+<style>
+    /* estiliza a cor do label do textfield antes de ser clicado */
+    .mud-input-label {
+        color: #ACACAB !important;
+    }
+    /* cor do houver do textfield  */
+    .mud-input.mud-input-underline:after {
+        border-bottom: 2px solid #04D282;
+    }
+    /* muda cor do label depois de algo ser digitado */
+    .mud-shrink ~ label.mud-input-label.mud-input-label-inputcontrol, .mud-input:focus-within ~ label.mud-input-label.mud-input-label-inputcontrol {
+        color: #fff !important;
+    }
+    /* cor do textfield depois de digitado */
+    .mud-input > input.mud-input-root, div.mud-input-slot.mud-input-root {
+        color: #fff;
+    }
+
+    .paper-style {
+        background-color: #011E36;
+        border-radius: 10px;
+        padding: 10px 20px 40px 20px;
+    }
+
+    .sub-text {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 900;
+    }
+    h2 {
+        text-align: center;
+        font-size: @Variaveis.FontPadrao;
+        font-weight: 700;
+        margin: 20px 0 35px 20px;
+        text-transform: uppercase;
+        color:#fff;
+
+    }
+
+    .margin-padrao {
+        margin: 0 10%;
+        padding-bottom:30px;
+    }
+
+   
+</style>
+
+@if (isAuthenticated)
+{
+    <div class="margin-padrao">
+
+        <h2>Cotações Salvas</h2
+        <MudGrid Class="paper-style">
+            <MudGrid Class="mb-5">
+                <MudItem xs="12">
+                    <MudText Class="sub-text">Filtros</MudText>
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField OnKeyUp="BtnPesquisar" Immediate="true" @bind-Value="NumCotacaoFiltro" Variant="Variant.Text" T="string" Label="N.Cotação" />
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField OnKeyUp="BtnPesquisar" Immediate="true" @bind-Value="NomeEncode" Variant="Variant.Text" T="string" Label="Nome Fantasia / Pessoa" />
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField OnKeyUp="BtnPesquisar" Immediate="true" @bind-Value="IdentificacaoEncode" Variant="Variant.Text" T="string" Label="CNPJ / CPF" />
+                </MudItem>
+            </MudGrid>
+            <MudGrid Class=" d-flex flex-column">
+                <MudItem>
+                    <MudTable Items="listCotacoesSalvas" Striped="true" Bordered="true" FixedHeader="true" FixedFooter="true" Height="500px" Hover="true" Breakpoint="Breakpoint.None">
+                        <ToolBarContent>
+                            <MudText Style="font-weight: 700;">@listCotacoesSalvas.Count() Cotações Encontradas</MudText>
+                        </ToolBarContent>
+                        <ColGroup>
+                            <col style="width: 180px;" />
+                            <col style="width: 180px;" />
+                            <col style="width: 180px;" />
+                            <col style="width: 180px;" />
+                            <col style="width: 180px;" />
+                            <col style="width: 180px;" />
+                            <col style="width: 180px;" />
+                            <col style="width: 40px;" />
+                        </ColGroup>
+                        <HeaderContent>
+                            <MudTh>N. Cotação</MudTh>
+                            <MudTh>CNPJ/CPF</MudTh>
+                            <MudTh>Nome Fantasia/Pessoa</MudTh>
+                            <MudTh>Data Criação</MudTh>
+                            <MudTh>Prazo Faturamento</MudTh>
+                            <MudTh>Prazo de Entrega</MudTh>
+                            <MudTh>Valor Total</MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="N. Cotação">@context.NumCotacao</MudTd>
+                                <MudTd DataLabel="CNPJ/CPF">@if (!string.IsNullOrWhiteSpace(context.Cnpj))
+                                            {
+                                                @context.Cnpj
+                                            }
+                                            else
+                                            {
+                                                @context.Cpf
+                                            }
+                                </MudTd>
+                                <MudTd DataLabel="Nome">@if (!string.IsNullOrWhiteSpace(context.NomeFantasia))
+                                            {
+                                                @context.NomeFantasia
+                                            }
+                                            else
+                                            {
+                                                @context.NomePessoa
+                                            }
+                                </MudTd>
+                                <MudTd DataLabel="Data Criação">@context.DataCriacao</MudTd>
+                                <MudTd DataLabel="Prazo Faturamento">@context.FaturamentoRetornado</MudTd>
+                                <MudTd DataLabel="Prazo de entrega">@context.PrazoEntregaRetornado</MudTd>
+                                <MudTd DataLabel="Valor Total">@context.ValorTotal.ToString("F2")</MudTd>
+                                <MudTd>
+                                    <MudIconButton Size="@Size.Medium" Color="Color.Error" Icon="@Icons.Material.Filled.SimCardDownload" OnClick="@(() => BtnBaixar(context))" />
+                                </MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudTablePager style="overflow-y: scroll;" InfoFormat="@itensInfoFormat" RowsPerPageString="Itens por pág." />
+                        </PagerContent>
+                        <NoRecordsContent>
+                            <MudText Color="Color.Error">Não foi encontrado nenhuma cotação finalizada :\</MudText>
+                        </NoRecordsContent>
+                        <LoadingContent>
+                            <MudText>Carregando...</MudText>
+                        </LoadingContent>
+                    </MudTable>
+                </MudItem>
+
+            </MudGrid>
+            <MudItem Class="d-flex justify-start" xs="6">
+                    <MudButton OnClick="BtnEditarCotao" Variant="Variant.Filled" Color="Color.Warning" Class="mr-5">Editar Cotação</MudButton>
+                    <MudButton OnClick="BtnExportar" Variant="Variant.Filled" Color="Color.Info">Exportar</MudButton>
+                </MudItem>
+                <MudItem Class="d-flex justify-end" xs="6">
+                    <MudButton OnClick="BtnVoltar" Variant="Variant.Filled" Color="Color.Error">Voltar</MudButton>
+                </MudItem>
+        </MudGrid>
+
+        </div>
+}
+
+@code {
+    private bool isAuthenticated = false;
+    private List<CotacaoModel> listCotacoesSalvas = new List<CotacaoModel>();
+    private string itensInfoFormat = "{first_item}-{last_item} de {all_items}";
+    private decimal valorTotal = 0;
+    private string NumCotacaoFiltro = string.Empty;
+    private string IdentificacaoEncode = string.Empty;
+    private string NomeEncode = string.Empty;
+
+    private LoginModel Usr = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isAuthenticated = await AuthenticationLogin.AuthenticateUser(authStateProvider, Usr, Navigation);
+
+            listCotacoesSalvas = CarregaTabelaCotacoesSalvas();
+
+            StateHasChanged();
+        }
+    }
+
+    private List<CotacaoModel> CarregaTabelaCotacoesSalvas()
+    {
+        try
+        {
+            var resp = _Cotacao.CarregarCotacoes(Usr.CodEmpresa,"","","");
+
+            return resp;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao carregar empresas a prazo: " + ex.Message);
+            return new List<CotacaoModel>(); 
+        }
+    }
+
+    private async Task BtnPesquisar()
+    {
+        listCotacoesSalvas = _Cotacao.CarregarCotacoes(Usr.CodEmpresa, NumCotacaoFiltro,NomeEncode, IdentificacaoEncode);
+    }
+
+    private void BtnBaixar(CotacaoModel cotacao)
+    {
+        string NomeCliente = string.IsNullOrWhiteSpace(cotacao.Cnpj) ? cotacao.NomePessoa?.Trim() : cotacao.NomeFantasia?.Trim();
+        string IdentificacaoCliente = string.IsNullOrWhiteSpace(cotacao.Cnpj) ? cotacao.Cpf?.Trim() : cotacao.Cnpj?.Trim();
+
+        // Assegurando que não enviaremos valores nulos ou strings vazias
+        NomeCliente = Uri.EscapeDataString(NomeCliente ?? string.Empty);
+        IdentificacaoCliente = Uri.EscapeDataString(IdentificacaoCliente ?? string.Empty);
+
+        string url = $"/baixarcotacao/{cotacao.CodCotacao}/{IdentificacaoCliente}/{cotacao.PrazoEntregaRetornado}/{cotacao.FaturamentoRetornado}/{NomeCliente}/{cotacao.NumCotacao}";
+        Navigation.NavigateTo(url);
+    }
+
+    private async void BtnExportar()
+    {
+        if (listCotacoesSalvas.Count() > 0)
+        {
+            List<string> colunas = new()
+        {
+            "NumCotacao",
+            "Nome Fantasia",
+            "Cnpj",
+            "Nome Pessoa",
+            "Cpf",
+            "Data Criação",
+            "Prazo Faturamento",
+            "Prazo Entrega",
+            "Valor Total",
+        };
+
+            List<List<string>> linhas = new();
+
+            foreach (var linha in listCotacoesSalvas)
+            {
+                linhas.Add(new()
+                {
+                    linha.NumCotacao.ToString()!,
+                    linha.NomeFantasia!,
+                    linha.Cnpj.ToString()!,
+                    linha.NomePessoa,
+                    linha.Cpf.ToString()!,
+                    linha.DataCriacao.ToString()!,
+                    linha.FaturamentoRetornado.ToString()!,
+                    linha.PrazoEntregaRetornado.ToString()!,
+                    linha.ValorTotal.ToString("F2")!,
+                });
+            }
+
+            await _Excel.ExportarTabelaXlsx("Cotações Salvas", colunas, linhas);
+        }
+        else
+        {
+            Snackbar.Add("ERRO! Não existem dados para exportar", Severity.Error);
+        }
+    }
+
+
+    private void BtnVoltar()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    private void BtnEditarCotao()
+    {
+        Navigation.NavigateTo("/editarcotacao");
+    }
+}

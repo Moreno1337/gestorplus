@@ -1,0 +1,205 @@
+﻿@page "/dashboard"
+
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@layout MainLayout
+@inject ImpressaoController _Impressao
+@inject ProdutosController _Produtos
+@inject IJSRuntime JSRuntime
+@inject ClientesController _Clientes
+@inject AuthenticationLogin authStateProvider
+
+<style>
+    /*Elevação da box do icone de chat*/
+    .mud-elevation-1 {
+        box-shadow: var(--mud-elevation-0);
+    }
+    /*Posição do icone de chat*/
+    .mud-height-full {
+        height: 64px;
+    }
+    /*margin do icone de chat*/
+    .mr-2, .mx-2 {
+        margin-right: 0px !important;
+    }
+    /*Borda do icone de chat*/
+    .mud-fab {
+        border-top-left-radius: 50%;
+        border-bottom-left-radius: 50%;
+        border-top-right-radius: 0%;
+        border-bottom-right-radius: 0%;
+    }
+    /*Tamanho(largura do container)*/
+</style>
+<MudItem xs="12" Class="d-flex justify-end">
+    <MudFab OnClick="ConfigCores" StartIcon="@Icons.Material.Filled.Settings" Color="Color.Warning" Label="Configurações do Sistema" />
+</MudItem>
+<MudItem xs="12" Class="d-flex justify-end">
+    <MudFab OnClick="TesteModal" StartIcon="@Icons.Material.Filled.Settings" Color="Color.Error" Label="Teste Modal" />
+</MudItem>
+<MudItem xs="12">
+    <MudFab OnClick="TesteNcmAsync" StartIcon="@Icons.Material.Filled.Settings" Color="Color.Warning" Label="Teste NCM" />
+    <MudTextField @bind-Value="ncmCode" Variant="Variant.Text" T="string" Label="Teste NCM dados" />
+</MudItem>
+
+
+
+<MudPaper Height="200px" Class="mud-theme-transparent" Style="overflow:hidden; position:absolute;top:64px;right:0; box-shadow:none;">
+    <MudDrawer @bind-Open="@open" Width="@width" Height="@height" Anchor="@anchor" Elevation="1" Variant="@DrawerVariant.Temporary">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6">Nome Usuário</MudText>
+        </MudDrawerHeader>
+        <MudNavMenu>
+            <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => OpenChatDialog("Thiago"))">Thiago</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => OpenChatDialog("Jonny"))">Jonny</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => OpenChatDialog("Felipe"))">Felipe</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => OpenChatDialog("Gui"))">Gui</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => OpenChatDialog("Charles"))">Charles</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+    <div class="d-flex justify-center align-center mud-height-full">
+        <MudFab Color="Color.Success" OnClick="@(() => OpenDrawer(Anchor.End))" StartIcon="@Icons.Material.Filled.Message" Class="mx-2">Chat</MudFab>
+    </div>
+</MudPaper>
+
+@code {
+    bool open;
+    Anchor anchor;
+    string width, height;
+
+    void OpenDrawer(Anchor anchor)
+    {
+        open = true;
+        this.anchor = anchor;
+
+        switch (anchor)
+        {
+            case Anchor.End:
+                width = "400px";
+                height = "100%";
+                break;
+        }
+    }
+
+    private void OpenChatDialog(string userName)
+    {
+        var parameters = new DialogParameters { ["UserName"] = userName };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<ModalChat>("Chat", parameters, options);
+    }
+
+    private int CodEmpresa = 2;
+    private string logoBase64;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                var logoBytes = _Clientes.PuxaLogoEmpresa(CodEmpresa);
+                logoBase64 = ConverterBytesParaBase64(logoBytes);
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+    }
+    private string ConverterBytesParaBase64(byte[] bytes)
+    {
+        string base64 = Convert.ToBase64String(bytes);
+        string formato = DeterminarFormatoImagem(bytes);
+        string mimeType = formato switch
+        {
+            "png" => "image/png",
+            "svg" => "image/svg+xml",
+            "jpeg" => "image/jpeg",
+            _ => "application/octet-stream", // Default caso não identifique
+        };
+        return $"data:{mimeType};base64,{base64}";
+    }
+
+    private string DeterminarFormatoImagem(byte[] bytes)
+    {
+        // Assinaturas de formatos de imagem comuns
+        var assinaturas = new Dictionary<string, byte[]>
+    {
+        { "png", new byte[] { 0x89, 0x50, 0x4E, 0x47 } }, // PNG: 89 50 4E 47
+        { "jpeg", new byte[] { 0xFF, 0xD8, 0xFF } }, // JPEG: FF D8 FF
+        // SVG não tem uma assinatura simples nos bytes iniciais. Seria necessário analisar o texto.
+    };
+
+        foreach (var formato in assinaturas)
+        {
+            if (bytes.Take(formato.Value.Length).SequenceEqual(formato.Value))
+            {
+                return formato.Key;
+            }
+        }
+
+        // Verificação adicional para SVG, que pode começar com um espaço em branco ou tags XML
+        var svgSignature = "<svg";
+        var encoding = new System.Text.UTF8Encoding();
+        var byteOrderMark = encoding.GetPreamble();
+        var possibleHeaderLength = Math.Min(bytes.Length, byteOrderMark.Length + 100); // Checar os primeiros 100 bytes para a tag SVG
+        var headerBytes = new byte[possibleHeaderLength];
+        Array.Copy(bytes, headerBytes, possibleHeaderLength);
+        var headerString = encoding.GetString(headerBytes);
+
+        if (headerString.Contains(svgSignature, StringComparison.InvariantCultureIgnoreCase))
+        {
+            return "svg";
+        }
+
+        return "desconhecido"; // Retorna desconhecido se não for possível determinar o formato
+    }
+
+    private string ncmCode = "82052000";
+    private async Task TesteNcmAsync()
+    {
+        try
+        {
+            await SGEServer.Controllers.ProdutosController.TesteNcm(ncmCode);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao executar TesteNcm: " + ex.Message);
+        }
+    }
+
+    private async void TesteModal()
+    {
+        var parameters = new DialogParameters();
+        DialogOptions Options = new DialogOptions();
+        Options.DisableBackdropClick = true;
+        var result = await DialogService.Show<ModalConfirmarCancelar>("DESEJA REALMENTE FINALIZAR ESTA ORDEM DE COMPRA?", parameters, Options).Result;
+
+        if (!result.Cancelled)
+        {
+        }
+
+        StateHasChanged();
+    }
+
+    private void ConfigCores()
+    {
+        Navigation.NavigateTo("/configuracoes");
+    }
+    // private async Task TesteImpressora()
+    // {
+    //     try
+    //     {
+    //         var pdfBytes = await ImpressaoEtiqueta.ImpressoraQL800();
+    //         string base64String = Convert.ToBase64String(pdfBytes);
+    //         string fileName = "EtiquetaSimulada.pdf";
+    //         await JSRuntime.InvokeVoidAsync("downloadFile", base64String, fileName, "application/pdf");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine("Erro ao executar TesteImpressora: " + ex.Message);
+    //     }
+    // }
+}
+
+    

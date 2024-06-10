@@ -1,0 +1,96 @@
+﻿<style>
+    .message-container {
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+    .message-sender {
+        font-weight: bold;
+        margin-right: 5px;
+    }
+
+    .message-content {
+        padding: 5px 10px;
+        border-radius: 10px;
+        max-width: 60%;
+        word-wrap: break-word;
+    }
+
+    .message-left {
+        justify-content: flex-start;
+    }
+
+    .message-right {
+        justify-content: flex-end;
+    }
+
+    .message-left .message-content {
+        background-color: #f1f1f1;
+        text-align: left;
+    }
+
+    .message-right .message-content {
+        background-color: #c1f0c1;
+        text-align: right;
+    }
+</style>
+
+<div>
+    <MudDialogContent>
+        <MudText Style="text-align:center;" Typo="Typo.h6">Conversa com @UserName</MudText> 
+        <MudPaper Class="pa-4" Style="height: 300px; overflow-y: auto;">
+            @foreach (var msg in messages)
+            {
+                <div class="message-container @(msg.Sender == UserName ? "message-left" : "message-right")">
+                    <div class="message-content">
+                        <span class="message-sender">@msg.Sender:</span>
+                        @msg.Content
+                    </div>
+                </div>
+            }
+        </MudPaper>
+        <MudTextField @bind-Value="message" Label="Message" FullWidth="true" Immediate="true" />
+    </MudDialogContent>
+    <MudDialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Close">Fechar</MudButton>
+        <MudButton Variant="Variant.Text" OnClick="SendMessage">Enviar</MudButton>
+    </MudDialogActions>
+</div>
+
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public string UserName { get; set; }
+
+    private string message = string.Empty;
+    private List<Message> messages = new List<Message>
+    {
+        new Message { Sender = "Felipe", Content = "Olá, tudo bem?" },
+        new Message { Sender = "Thiago", Content = "Olá, tudo bem?" },
+        new Message { Sender = "Jonny", Content = "Olá, tudo bem?" },
+        new Message { Sender = "Charles", Content = "Olá, tudo bem?" },
+        new Message { Sender = "Gui", Content = "Olá, tudo bem?" },
+        new Message { Sender = "Usuário", Content = "Oi Thiago, tudo bem e você?" }
+    };
+
+    void SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            messages.Add(new Message { Sender = UserName, Content = message });
+            message = string.Empty;
+        }
+    }
+
+    void Close() => MudDialog.Close();
+
+    public class Message
+    {
+        public string Sender { get; set; }
+        public string Content { get; set; }
+    }
+}
+
+

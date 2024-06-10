@@ -1,0 +1,211 @@
+﻿@page "/baixarcotacao/{CodCotacao:int}/{IdentificacaoCliente}/{PrazoEntregaRetornado:int}/{FaturamentoRetornado:int}/{NomeCliente}/{NumCotacao}"
+
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject AuthenticationLogin authStateProvider
+@inject ProdutosController _Produtos
+@inject ClientesController _Clientes
+@inject CotacaoController _Cotacao
+@inject ISnackbar Snackbar
+@inject PdfHelper _Pdf
+
+@using SGEServer.Pages.Operacional.Cotacao
+@using System.Data;
+@using iTextSharp.text;
+@using iTextSharp.text.pdf;
+@using System;
+@using System.IO;
+
+
+@if (isAuthenticated)
+{
+    
+        <h2>Cotação</h2>
+        <MudGrid>
+             <MudItem Class="form-cotacao" xs="8">
+                 <MudGrid>
+                     <MudItem xs="4">
+                         <h3>Detalhes</h3>
+                     </MudItem>
+                     <MudItem xs="4"></MudItem>
+                     <MudItem xs="4">
+                         <MudTextField @bind-Value="NumCotacao" ReadOnly Variant="Variant.Filled" T="string" Label="N. da cotação" />
+                     </MudItem>
+                     <MudItem xs="4">
+                         <MudTextField @bind-Value="NomeCliente" ReadOnly Variant="Variant.Filled" T="string" Label="Nome Fantasia/Pessoa" />
+                     </MudItem>
+                     <MudItem xs="4">
+                    <MudTextField @bind-Value="IdentificacaoCliente" ReadOnly Variant="Variant.Filled" T="string" Label="CNPJ/CPF" />
+                     </MudItem>
+
+                     <MudItem xs="12">
+                         <MudTable Items="listProdutos" FixedFooter="true" Height="350px" Hover="true" Breakpoint="Breakpoint.None">
+                             <ColGroup>
+                                 <col style="width: 120px;" />
+                                 <col />
+                                 <col style="width: 60px;" />
+                                 <col />
+                                 <col />
+                                 <col style="width: 120px;" />
+                                 <col style="width: 120px;" />
+                                 <col style="width: 60px;" />
+                             </ColGroup>
+                             <HeaderContent>
+                                 <MudTh>Qtde</MudTh>
+                                 <MudTh>Item</MudTh>
+                                 <MudTh>Un. Medida</MudTh>
+                                 <MudTh>NCM</MudTh>
+                                 <MudTh>CA</MudTh>
+                                 <MudTh>Valor Un.</MudTh>
+                                 <MudTh>Valor Total</MudTh>
+                                 <MudTh></MudTh>
+                             </HeaderContent>
+                             <RowTemplate>
+                                 <MudTd DataLabel="Qtde">@context.QtdeItens</MudTd>
+                                    <MudTd DataLabel="Item">@context.Item</MudTd>
+                                    <MudTd DataLabel="Un. Medida">@context.UnidadeMedida</MudTd>
+                                    <MudTd DataLabel="NCM">@context.Ncm</MudTd>
+                                    <MudTd DataLabel="CA">@context.CaEpi</MudTd>
+                                    <MudTd DataLabel="Valor Un.">R$ @context.ValorUnitario.ToString("F2")</MudTd>
+                                    <MudTd DataLabel="Valor Total">R$ @context.ValorTotalProduto.ToString("F2")</MudTd>
+                                </RowTemplate>
+                                <FooterContent>
+                                    <MudTh Style="font-weight: 700; text-align: end; font-size: 20px;"
+                                           Class="mud-table-cell-custom-group mud-table-cell-custom-group-footer"
+                                           colspan="6">
+                                        VALOR TOTAL: R$ @ValorTotalCotacao.ToString("F2")
+                                </MudTh>
+                            </FooterContent>
+                            <PagerContent>
+                                <MudTablePager style="overflow-y: scroll;" InfoFormat="@itensInfoFormat" RowsPerPageString="Itens por pág." />
+                            </PagerContent>
+                            <NoRecordsContent>
+                                <MudText Color="Color.Error">Nenhum item adicionado ainda...</MudText>
+                            </NoRecordsContent>
+                            <LoadingContent>
+                                <MudText>Carregando...</MudText>
+                            </LoadingContent>
+                        </MudTable>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+        </MudGrid>
+}
+
+@code {
+    private bool isAuthenticated = false;
+
+    [Parameter] public string NumCotacao { get; set; }
+    [Parameter] public int CodCotacao { get; set; }
+    [Parameter] public int PrazoEntregaRetornado { get; set; }
+    [Parameter] public int FaturamentoRetornado { get; set; }
+    [Parameter] public string IdentificacaoCliente { get; set; }
+    [Parameter] public string NomeCliente { get; set; }
+
+    private string itensInfoFormat = "{first_item}-{last_item} de {all_items}";
+    private List<ProdutosModel> listProdutos = new List<ProdutosModel>();
+    private List<ClientesModel> listSearchClientes = new List<ClientesModel>();
+    private List<ProdutosModel> listSearch = new List<ProdutosModel>();
+    private ClientesModel selectedCliente = new ClientesModel();
+    private ProdutosModel selectedProduto = new ProdutosModel();
+    private CotacaoModel DadosCotacao = new CotacaoModel();
+    private decimal ValorTotalProduto = 0m;
+    private int autocompleteKey = 0;
+    private decimal valorVenda;
+    private decimal valorCompra;
+    private string ErroMensagemCliente = "";
+    private string ErroMensagemProduto = "";
+    private bool isClienteSelectedValid = true;
+    private bool isProdutoSelectedValid = true;
+    private string Item = string.Empty;
+    private string UnidadeMedida = string.Empty;
+    private string Ncm = string.Empty;
+    private string CaEpi = string.Empty;
+    private int Quantidade = 0;
+    private string valorUnitarioErrorMessage = "";
+    private string mensagemErroProduto = "";
+    private string mensagemErroCliente = "";
+    private string mensagemErroQuantidade = "";
+    private string mensagemErroValorUnitario = "";
+    private string mensagemErroSelecaoEmpresa = "";
+    private decimal ValorUnitario = 0;
+    private bool isItemFocused = false;
+    private string mensagemItemDuplicado = string.Empty;
+    private string mensagemErroItem = string.Empty;
+    private string mensagemErro = string.Empty;
+
+    private LoginModel Usr = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await AuthenticationLogin.AuthenticateUser(authStateProvider, Usr, Navigation);
+
+        if (isAuthenticated && !string.IsNullOrEmpty(NumCotacao))
+        {
+            listProdutos = _Cotacao.CarregarItensCotacao(CodCotacao, Usr.CodEmpresa);
+        }
+        
+        await base.OnInitializedAsync();
+
+        GerarPDFTeste();
+        Snackbar.Add("SUCESSO! Download realizado para pasta Cotações na Area de Trabalho", Severity.Success);
+        Navigation.NavigateTo("/cotacoessalvas");
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && isAuthenticated)
+        {
+            listSearchClientes = _Clientes.CarregaClientesCadastrados(Usr.CodEmpresa);
+            listSearch = _Produtos.CarregaProdutosCadastrados(Usr.CodEmpresa, "", "", "", "");
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private decimal ValorTotalCotacao
+    {
+        get
+        {
+            return listProdutos.Sum(p => p.ValorTotalProduto);
+        }
+    }
+
+    private async Task<IEnumerable<ProdutosModel>> SearchItem(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return new List<ProdutosModel>();
+
+        return listSearch.Where(x => x.Item!.Contains(value, StringComparison.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddScoped<ProdutosController>();
+    }
+
+    private async void OnClienteSelected(ClientesModel newValue)
+    {
+        selectedCliente = newValue ?? new ClientesModel();
+
+        if (selectedCliente != null && selectedCliente.CodCliente > 0)
+        {
+            mensagemErroCliente = string.Empty;
+            mensagemErroSelecaoEmpresa = string.Empty;
+        }
+        else
+        {
+            mensagemErroCliente = "Este campo é obrigatório para cotação ";
+        }
+
+        StateHasChanged();
+    }
+
+    private void GerarPDFTeste()
+    {
+        _Pdf.GerarPDFHelper(NomeCliente, IdentificacaoCliente, NumCotacao, Usr.CodEmpresa, listProdutos, ValorTotalCotacao, PrazoEntregaRetornado, FaturamentoRetornado);
+    }
+
+}

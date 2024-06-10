@@ -1,0 +1,437 @@
+﻿@inject ProdutosController _Produtos
+@inject IDialogService DialogService
+
+<style>
+    
+    /* estiliza a cor do label do textfield antes de ser clicado */
+    .mud-input-label {
+        color: #ACACAB !important;
+    }
+    /* cor do houver do textfield  */
+    .mud-input.mud-input-underline:after {
+        border-bottom: 2px solid #04D282;
+    }
+    /* muda cor do label depois de algo ser digitado */
+    .mud-shrink ~ label.mud-input-label.mud-input-label-inputcontrol, .mud-input:focus-within ~ label.mud-input-label.mud-input-label-inputcontrol {
+        color: #fff !important;
+    }
+    /* cor do textfield depois de digitado */
+    .mud-input > input.mud-input-root, div.mud-input-slot.mud-input-root {
+        color: #fff;
+    }
+    /* cor do required caracteres */
+    .ms-auto {
+        color: #ACACAB;
+    }
+    /* cor do required text */
+    .me-auto {
+        color: #ACACAB;
+    }
+
+    .mud-icon-root.mud-svg-icon {
+        color: #fff;
+    }
+
+    .paper-style {
+        background-color: #011E36;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    .sub-text {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 900;
+    }
+
+    /* cor do textfieldarea apos digitar */
+    .mud-input > textarea.mud-input-root {
+        color: #fff !important;
+    }
+
+    .mud-dialog .mud-dialog-title {
+        padding: 0px;
+    }
+
+    .no-wrap {
+        white-space:nowrap;
+    }
+    
+    @if(ExibirTabelaAvancada){
+        <style>
+            .mud-dialog-width-sm {
+                max-width:800px !important;
+            }
+            .mud-dialog {
+                background-color: transparent !important;
+                box-shadow:none !important;
+            }
+
+            .mud-grid-spacing-xs-3 > .mud-grid-item {
+                padding: 3px 7px;
+            }
+        </style>
+    }
+    
+</style>
+
+    @if (!ExibirTabelaAvancada)
+    {
+        <MudGrid Class="paper-style">
+            <MudItem xs="10"></MudItem>
+            <MudItem xs="2">
+                <MudButton Color="Color.Error" OnClick="BtnFechar" Variant="Variant.Filled">
+                    X
+                </MudButton>
+            </MudItem>
+            <MudItem Class="d-flex justify-center align-center" Style="max-width: 100%; width: 100%;" xs="12">
+                <MudText Style="font-weight: 700; text-transform: uppercase; text-align: center; color:#fff;"> Cadastro simplificado de produtos </MudText>
+            </MudItem>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Required RequiredError="O campo Nome é obrigatório!" Counter="200" MaxLength="200" Immediate="true" @ref="TextFieldNome" @bind-Value="Nome" Variant="Variant.Text" T="string" Label="Nome" />
+                </MudItem>
+                <MudItem xs=12 sm=12>
+                    <MudTextField Required RequiredError="O campo Ncm é obrigatório!" Counter="200" MaxLength="200" Immediate="true" @ref="TextFieldNcm" @bind-Value="Ncm" Variant="Variant.Text" T="string" Label="NCM" />
+                </MudItem>
+                <MudGrid Class="d-flex align-center pl-3 pr-6 mb-7">
+                    <MudItem xs="5">
+                        <MudSelect Required RequiredError="O campo Un.Medida é obrigatório!" @ref="SelectFieldUnidadeMedida" @bind-Value="UnidadeMedida" T="int" Variant="Variant.Text" Label="Un. Medida">
+                            <MudSelectItem Value="0">Selecione</MudSelectItem>
+                            @foreach (var unidade in DropUnMedida)
+                                        {
+                            <MudSelectItem Value="unidade.Codigo">@unidade.Descricao</MudSelectItem>
+                                        }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="7" Class="d-flex align-center flex-row">
+                        <MudItem Class="mr-3">
+                            <MudButton Class="no-wrap" Size="Size.Small" OnClick="BtnAddUnMedida" Color="Color.Info" Variant="Variant.Filled">Adicionar Un. Medida</MudButton>
+                        </MudItem>
+                        <MudItem>
+                            <MudButton Class="no-wrap" Size="Size.Small" OnClick="BtnRemoveUnMedida" Color="Color.Error" Variant="Variant.Filled">Remover Un. Medida</MudButton>
+                        </MudItem>
+                    </MudItem>
+                </MudGrid>
+                <MudItem Class="d-flex justify-end " xs="12">
+                    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Warning" OnClick="ToggleTabelaAvancada">
+                        + Cadastro Completo
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+                <MudItem Class="d-flex justify-center align-center mb-5" xs="6">
+                <MudButton OnClick="BtnFechar" Variant="Variant.Filled" Color="Color.Error">
+                    Cancelar
+                </MudButton>
+            </MudItem>
+            <MudItem Class="d-flex justify-center align-center mb-5" xs="6">
+                <MudButton OnClick="BtnCadastrar" Variant="Variant.Filled" Color="Color.Success">
+                    Cadastrar
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    }
+    
+
+
+    @if (ExibirTabelaAvancada)
+    {
+        <MudGrid Class="paper-style mt-7 mb-7">
+            <MudItem xs="10"></MudItem>
+            <MudItem xs="2">
+                <MudButton Color="Color.Error" OnClick="BtnFechar" Variant="Variant.Filled">
+                    X
+                </MudButton>
+            </MudItem>
+            <MudItem Class="d-flex justify-center align-center" Style="max-width: 100%; width: 100%;" xs="12">
+                <MudText Style="font-weight: 700; text-transform: uppercase; text-align: center; color:#fff;"> Cadastro simplificado de produtos </MudText>
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField Required RequiredError="O campo Nome é obrigatório!" Counter="200" MaxLength="200" Immediate="true" @ref="TextFieldNome" @bind-Value="Nome" Variant="Variant.Text" T="string" Label="Nome" />
+            </MudItem>
+            <MudItem xs=6>
+                <MudTextField Counter="200" MaxLength="200" Immediate="true" @bind-Value="Marca" Variant="Variant.Text" T="string" Label="Marca" />
+            </MudItem>
+            <MudItem xs=6>
+                <MudTextField Required RequiredError="O campo Ncm é obrigatório!" Counter="200" MaxLength="200" Immediate="true" @ref="TextFieldNcm" @bind-Value="Ncm" Variant="Variant.Text" T="string" Label="NCM" />
+            </MudItem>
+            <MudItem xs=6>
+                <MudTextField Counter="200" MaxLength="200" Immediate="true" @bind-Value="CaEpi" Variant="Variant.Text" T="string" Label="CA" />
+            </MudItem>
+            <MudGrid Class="d-flex align-center pl-3 pr-6 mb-7">
+                <MudItem xs=5>
+                    <MudSelect @bind-Value="Categoria" T="int" Variant="Variant.Text" Label="Categoria">
+                        <MudSelectItem Value="0">Selecione</MudSelectItem>
+                        @foreach (var categoria in DropCategoria)
+                        {
+                            <MudSelectItem Value="categoria.Codigo">@categoria.Descricao</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="7" Class="d-flex align-center flex-row">
+                    <MudItem Class="mr-3">
+                        <MudButton Class="no-wrap" Size="Size.Small" OnClick="BtnAddCategoria" Color="Color.Info" Variant="Variant.Filled">Adicionar Categoria</MudButton>
+                    </MudItem>
+                    <MudItem>
+                    <MudButton Class="no-wrap" Size="Size.Small" OnClick="BtnRemoveCategoria" Color="Color.Error" Variant="Variant.Filled">Remover Categoria</MudButton>
+                    </MudItem>
+                </MudItem>
+            </MudGrid>
+                    
+            <MudGrid Class="d-flex align-center pl-3 pr-6 mb-7">
+                <MudItem xs="5">
+                    <MudSelect Required RequiredError="O campo Un.Medida é obrigatório!" @ref="SelectFieldUnidadeMedida" @bind-Value="UnidadeMedida" T="int" Variant="Variant.Text" Label="Un. Medida">
+                        <MudSelectItem Value="0">Selecione</MudSelectItem>
+                        @foreach (var unidade in DropUnMedida)
+                        {
+                            <MudSelectItem Value="unidade.Codigo">@unidade.Descricao</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="7" Class="d-flex align-center flex-row">
+                    <MudItem Class="mr-3">
+                        <MudButton Class="no-wrap" Size="Size.Small" OnClick="BtnAddUnMedida" Color="Color.Info" Variant="Variant.Filled">Adicionar Un. Medida</MudButton>
+                    </MudItem>
+                    <MudItem>
+                        <MudButton Class="no-wrap" Size="Size.Small" OnClick="BtnRemoveUnMedida" Color="Color.Error" Variant="Variant.Filled">Remover Un. Medida</MudButton>
+                    </MudItem>
+                </MudItem>
+            </MudGrid>
+            <MudItem xs=12 sm=6>
+                <MudTextField Counter="50" MaxLength="50" Immediate="true" @bind-Value="Fornecedor" Variant="Variant.Text" T="string" Label="Fornecedor" />
+            </MudItem>
+            <MudItem xs=12 sm=6>
+                <MudNumericField @bind-Value="EstoqueMinimo" Variant="Variant.Text" T="int" Label="Estoque Mínimo" />
+            </MudItem>
+            <MudItem xs="12" sm=12>
+                <MudTextField Counter="10" MaxLength="10" Immediate="true" @bind-Value="Endereco" Variant="Variant.Text" T="string" Label="Endereço no Estoque" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="Descricao" Immediate="true" Variant="Variant.Text" T="string" Label="Descrição" Lines="5" Counter="500" MaxLength="500" />
+            </MudItem>
+            <MudItem xs="12" Class="d-flex justify-center">
+                <MudText Color="@CorMensagem">@Mensagem</MudText>
+            </MudItem>
+            <MudItem Class="d-flex justify-center align-center" xs="6">
+                <MudButton OnClick="BtnFechar" Variant="Variant.Filled" Color="Color.Error">
+                    Cancelar
+                </MudButton>
+            </MudItem>
+            <MudItem Class="d-flex justify-center align-center" xs="6">
+                <MudButton OnClick="BtnCadastrar" Variant="Variant.Filled" Color="Color.Success">
+                    Cadastrar
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    }
+
+@code {
+    private bool ExibirTabelaAvancada = false;
+    private string Nome = string.Empty;
+    private string Marca = string.Empty;
+    private string Ncm = string.Empty;
+    private string CaEpi = string.Empty;
+    private int Categoria = 0;
+    private string Fornecedor = string.Empty;
+    private int EstoqueMinimo = 0;
+    private int UnidadeMedida = 0;
+    private string Endereco = string.Empty;
+    private string Descricao = string.Empty;
+    private string Mensagem = "";
+    private Color CorMensagem = Color.Default;
+    private MudTextField<string>? TextFieldNome;
+    private MudTextField<string>? TextFieldNcm;
+    private MudSelect<int>? SelectFieldUnidadeMedida;
+    private List<DropDownModel> DropCategoria = new List<DropDownModel>();
+    private List<DropDownModel> DropUnMedida = new List<DropDownModel>();
+    private ProdutosModel DadosProduto = new ProdutosModel();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        DropUnMedida = _Produtos.CarregaUnidadesMedida();
+        DropCategoria = _Produtos.CarregaCategorias();
+        StateHasChanged();
+        await base.OnInitializedAsync();
+    }
+
+    private void ToggleTabelaAvancada()
+    {
+        ExibirTabelaAvancada = true; 
+    }
+
+    private async void BtnAddUnMedida()
+    {
+        var parameters = new DialogParameters();
+        DialogOptions Options = new DialogOptions();
+        Options.DisableBackdropClick = true;
+        var result = await DialogService.Show<ModalAdicionarUnidadeMedida>(" Digite a nova unidade de medida que deseja adicionar", parameters, Options).Result;
+
+        if (!result.Cancelled)
+        {
+            DropUnMedida = _Produtos.CarregaUnidadesMedida();
+        }
+
+        StateHasChanged();
+    }
+
+    private async void BtnRemoveUnMedida()
+    {
+        var parameters = new DialogParameters();
+        DialogOptions Options = new DialogOptions();
+        Options.DisableBackdropClick = true;
+        var result = await DialogService.Show<ModalRemoverUnidadeMedida>("Selecione a unidade de medida que deseja remover", parameters, Options).Result;
+
+        if (!result.Cancelled)
+        {
+            UnidadeMedida = 0;
+            DropUnMedida = _Produtos.CarregaUnidadesMedida();
+        }
+
+        StateHasChanged();
+    }
+
+    private async void BtnAddCategoria()
+    {
+        var parameters = new DialogParameters();
+        DialogOptions Options = new DialogOptions();
+        Options.DisableBackdropClick = true;
+        var result = await DialogService.Show<ModalAdicionarCategoria>("", parameters, Options).Result;
+
+        if (!result.Cancelled)
+        {
+            string resp = result.Data.ToString()!;
+            Snackbar.Add(resp.Split(",")[0], Severity.Success);
+            DropCategoria = _Produtos.CarregaCategorias();
+        }
+
+        StateHasChanged();
+    }
+
+    private async void BtnRemoveCategoria()
+    {
+        var parameters = new DialogParameters();
+        DialogOptions Options = new DialogOptions();
+        Options.DisableBackdropClick = true;
+        var result = await DialogService.Show<ModalRemoverCategoria>(" Selecione a categoria que deseja remover", parameters, Options).Result;
+
+        if (!result.Cancelled)
+        {
+            string resp = result.Data.ToString()!;
+            Snackbar.Add(resp.Split(",")[0], Severity.Success);
+            Categoria = 0;
+            DropCategoria = _Produtos.CarregaCategorias();
+        }
+
+        StateHasChanged();
+    }
+
+    private async void BtnCadastrar()
+    {
+        if (await ValidarCampos())
+        {
+            try
+            {
+                DadosProduto.Item = Nome;
+                DadosProduto.Marca = Marca;
+                DadosProduto.Ncm = Ncm;
+                DadosProduto.CaEpi = CaEpi;
+                DadosProduto.CodCategoria = Categoria;
+                DadosProduto.Fornecedor = Fornecedor;
+                DadosProduto.EstoqueMinimo = EstoqueMinimo;
+                DadosProduto.CodUnidadeMedida = UnidadeMedida;
+                DadosProduto.Endereco = Endereco;
+                DadosProduto.Descricao = Descricao;
+
+                var resp = _Produtos.SalvarProduto(DadosProduto);
+
+                LimparTela();
+
+                Snackbar.Add(resp.Split("|")[0], Severity.Success);
+
+                BtnConfirmar();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add("ERRO! Ocorreu um problema ao salvar o produto: " + ex.Message, Severity.Error);
+            }
+        }
+        else
+        {
+
+            CorMensagem = Color.Error;
+        }
+
+        StateHasChanged();
+    }
+
+    private void BtnCadastrarSair()
+    {
+        BtnCadastrar();
+        BtnFechar();
+    }
+
+    private async Task<bool> ValidarCampos()
+    {
+        if (string.IsNullOrEmpty(Nome))
+        {
+            Mensagem = "ERRO! Preencha o campo Nome e tente novamente";
+            await TextFieldNome!.FocusAsync();
+            await TextFieldNome!.BlurAsync();
+            await TextFieldNome!.FocusAsync();
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(Ncm))
+        {
+            Mensagem = "ERRO! Preencha o campo NCM e tente novamente";
+            await TextFieldNcm!.FocusAsync();
+            await TextFieldNcm!.BlurAsync();
+            await TextFieldNcm!.FocusAsync();
+            return false;
+        }
+
+        if (UnidadeMedida <= 0)
+        {
+            Mensagem = "ERRO! Selecione uma Unidade de Medida válida e tente novamente";
+            await SelectFieldUnidadeMedida!.FocusAsync();
+            await SelectFieldUnidadeMedida!.BlurAsync();
+            await SelectFieldUnidadeMedida!.FocusAsync();
+            return false;
+        }
+
+        return true;
+    }
+
+    private async void LimparTela()
+    {
+        Nome = string.Empty;
+        Marca = string.Empty;
+        Ncm = string.Empty;
+        CaEpi = string.Empty;
+        Categoria = 0;
+        Fornecedor = string.Empty;
+        EstoqueMinimo = 0;
+        UnidadeMedida = 0;
+        Endereco = string.Empty;
+        Descricao = string.Empty;
+
+        Mensagem = "";
+        CorMensagem = Color.Default;
+
+        await TextFieldNome!.FocusAsync();
+
+        StateHasChanged();
+    }
+
+    private void BtnFechar()
+    {
+        MudDialog!.Close(DialogResult.Cancel());
+    }
+
+    private void BtnConfirmar()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

@@ -1,0 +1,62 @@
+﻿<style>
+    /* cor do texto digitado no mudtext */
+    .mud-input > input.mud-input-root {
+        color: #fff !important;
+    }
+    /* cor do label do mudtext */
+    .mud-input-control > .mud-input-control-input-container > .mud-input-label-inputcontrol {
+        color: #fff !important;
+    }
+
+    .mud-dialog .mud-dialog-title {
+        padding: 0px;
+    }
+
+    .paper-style {
+        background-color: #011E36;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    .mud-input > input.mud-input-root.mud-input-root-filled, div.mud-input-slot.mud-input-root.mud-input-root-filled {
+        background-color: #063862;
+    }
+
+    .span-red {
+        color: red;
+        font-weight: bold;
+    }
+
+</style>
+
+<MudGrid Class="d-flex justify-center pa-5 paper-style" Style="max-width: 600px;">
+    <MudItem Class="d-flex justify-center align-center" xs="12">
+        <MudText Style="font-weight: 700;
+                        text-transform: uppercase;
+                        color:#fff; text-align:center;">
+            Deseja realmente <span class="span-red">cancelar</span> o item <span class="span-red">Permanentemente</span> da ordem de compra ?
+        </MudText>
+    </MudItem>
+    <MudItem xs="6" Class="d-flex justify-center">
+        <MudButton Variant="Variant.Filled" Color="Color.Error" Style="width: 100%;" OnClick="OnClickCancelar">Cancelar</MudButton>
+    </MudItem>
+    <MudItem xs="6" Class="d-flex justify-center">
+        <MudButton Variant="Variant.Filled" Color="Color.Success" Style="width: 100%;" OnClick="OnClickConfirmar">Confirmar</MudButton>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private void OnClickCancelar()
+    {
+        MudDialog!.Close(DialogResult.Cancel());
+    }
+
+    private void OnClickConfirmar()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}
+
