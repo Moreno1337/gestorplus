@@ -1,0 +1,78 @@
+﻿<style>
+    /* cor do texto digitado no mudtext */
+    .mud-input > input.mud-input-root {
+        color: #fff !important;
+    }
+    /* cor do label do mudtext */
+    .mud-input-control > .mud-input-control-input-container > .mud-input-label-inputcontrol {
+        color: #fff !important;
+    }
+
+    .mud-dialog .mud-dialog-title {
+        padding: 0px;
+    }
+
+    .paper-style {
+        background-color: #011E36;
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom:0px !important;
+    }
+
+    .mud-input > input.mud-input-root.mud-input-root-filled, div.mud-input-slot.mud-input-root.mud-input-root-filled {
+        background-color: #063862;
+    }
+
+    .mud-button-label {
+        color:#fff;
+    }
+
+    .mud-button-icon-size-medium > *:first-child {
+        font-size: 10px;
+        color: @CorNotificacao !important;
+        animation: colorChange 2s infinite;
+    }
+    .box-text-noti{
+        height: 30px;
+        border-top: 1px solid rgba(16, 130, 85, 0.7);
+        border-bottom: 1px solid rgba(16, 130, 85, 0.7);
+        display: flex;
+        justify-content: center;
+        padding: 20px 10px 30px 10px;
+        color: #fff;
+        background-color: rgba(16, 130, 85, 0.4);
+    }
+</style>
+
+<MudGrid Style="width: 600px; height:600px;" Class="paper-style">
+    <MudItem xs="10"></MudItem>
+    <MudItem xs="2">
+        <MudButton Color="Color.Error" OnClick="BtnFechar" Variant="Variant.Filled">
+            X
+        </MudButton>
+    </MudItem>
+    <MudGrid>
+        <MudItem xs="12">
+            <div class="box-text-noti">
+                <MudButton StartIcon="@Icons.Material.Filled.Circle" Variant="Variant.Text" FullWidth="true">Disco de corte atingiu o minimo de estoque</MudButton>
+            </div>
+        </MudItem>
+    </MudGrid>
+</MudGrid>
+
+
+@code{
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private string CorNotificacao = "yellow";
+
+    private void BtnFechar()
+    {
+        MudDialog!.Close(DialogResult.Cancel());
+    }
+
+
+
+
+}
